@@ -96,7 +96,7 @@ class GroundingDINO(nn.Module):
 
         # bert
         if text_encoder_type == 'bert-base-uncased' and os.path.exists('/stable-diffusion-cache/models/models--bert-base-uncased'):
-            text_encoder_type = '/stable-diffusion-cache/models/models--bert-base-uncased'
+            text_encoder_type = '/stable-diffusion-cache/models/models--bert-base-uncased/snapshots/1dbc166cf8765166998eff31ade2eb64c8a40076'
         self.tokenizer = get_tokenlizer.get_tokenlizer(text_encoder_type)
         self.bert = get_tokenlizer.get_pretrained_language_model(text_encoder_type)
         self.bert.pooler.dense.weight.requires_grad_(False)
