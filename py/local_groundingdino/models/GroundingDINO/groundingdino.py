@@ -36,6 +36,7 @@ from .bertwarper import (
 )
 from .transformer import build_transformer
 from .utils import MLP, ContrastiveEmbed
+import os
 
 
 class GroundingDINO(nn.Module):
@@ -94,6 +95,8 @@ class GroundingDINO(nn.Module):
         self.dn_labelbook_size = dn_labelbook_size
 
         # bert
+        if text_encoder_type == 'bert-base-uncased' and os.path.exists('/stable-diffusion-cache/models/models--bert-base-uncased'):
+            text_encoder_type = '/stable-diffusion-cache/models/models--bert-base-uncased'
         self.tokenizer = get_tokenlizer.get_tokenlizer(text_encoder_type)
         self.bert = get_tokenlizer.get_pretrained_language_model(text_encoder_type)
         self.bert.pooler.dense.weight.requires_grad_(False)
