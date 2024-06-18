@@ -1921,11 +1921,11 @@ FONT_DICT = {}
 for i in range(len(__font_file_list)):
     _, __filename =  os.path.split(__font_file_list[i])
     FONT_DICT[__filename] = __font_file_list[i]
-from comfy.cli_args import args
-for user_font in glob.iglob(os.path.join(args.data_dir, '*.ttf')):
+import folder_paths
+for user_font in glob.iglob(os.path.join(folder_paths.models_dir, 'fonts/*.ttf')):
     _, __filename =  os.path.split(user_font)
     FONT_DICT[__filename] = user_font
-for user_font in glob.iglob(os.path.join(args.data_dir, '*.otf')):
+for user_font in glob.iglob(os.path.join(folder_paths.models_dir, 'fonts/*.otf')):
     _, __filename =  os.path.split(user_font)
     FONT_DICT[__filename] = user_font
 FONT_LIST = list(FONT_DICT.keys())
