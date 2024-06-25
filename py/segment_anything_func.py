@@ -98,6 +98,10 @@ def get_local_filepath(url, dirname, local_file_name=None):
 
     destination = os.path.join(folder, local_file_name)
     if not os.path.exists(destination):
+        if os.path.exists(os.path.join("/stable-diffusion-cache/models/grounding-dino", local_file_name)):
+            return os.path.join("/stable-diffusion-cache/models/grounding-dino", local_file_name)
+        elif os.path.exists(os.path.join("/stable-diffusion-cache/models/sams", local_file_name)):
+            return os.path.join("/stable-diffusion-cache/models/sams", local_file_name)
         logger.warn(f'downloading {url} to {destination}')
         download_url_to_file(url, destination)
     return destination

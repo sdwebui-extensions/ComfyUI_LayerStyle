@@ -22,11 +22,14 @@ class StopOnTokens(StoppingCriteria):
 
 class UformGen2QwenChat:
     def __init__(self):
-        self.model_path = snapshot_download("unum-cloud/uform-gen2-qwen-500m", 
-                                            local_dir=files_for_uform_gen2_qwen,
-                                            force_download=False,  # Set to True if you always want to download, regardless of local copy
-                                            local_files_only=False,  # Set to False to allow downloading if not available locally
-                                            local_dir_use_symlinks="auto") # or set to True/False based on your symlink preference
+        if os.path.exists("/stable-diffusion-cache/models/LLavacheckpoints/files_for_uform_gen2_qwen"):
+            self.model_path = "/stable-diffusion-cache/models/LLavacheckpoints/files_for_uform_gen2_qwen"
+        else:
+            self.model_path = snapshot_download("unum-cloud/uform-gen2-qwen-500m", 
+                                                local_dir=files_for_uform_gen2_qwen,
+                                                force_download=False,  # Set to True if you always want to download, regardless of local copy
+                                                local_files_only=False,  # Set to False to allow downloading if not available locally
+                                                local_dir_use_symlinks="auto") # or set to True/False based on your symlink preference
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.model = AutoModel.from_pretrained(self.model_path, trust_remote_code=True).to(self.device)
         self.processor = AutoProcessor.from_pretrained(self.model_path, trust_remote_code=True)
