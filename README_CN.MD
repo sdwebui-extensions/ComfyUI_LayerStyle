@@ -1,6 +1,6 @@
 ﻿# ComfyUI Layer Style
 
-如果您有定制节点、定制工作流业务，请联系email [chflame@163.com](mailto:chflame@163.com)
+商业合作请联系email [chflame@163.com](mailto:chflame@163.com)
 
 
 
@@ -34,6 +34,16 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 
 ## 常见问题
 如果节点不能正常加载，或者使用中出现错误，请在ComfyUI终端窗口查看报错信息。以下是常见的错误及解决方法。
+
+### ModuleNotFoundError: No module named 'psd_tools'
+这个错误是```psd_tools```没有正确安装。    
+
+解决方法：
+* 关闭ComfyUI，在插件目录下打开终端窗口，执行以下命令:
+```../../../python_embeded/python.exe -s -m pip install psd_tools```
+如果安装psd_tool中出现```ModuleNotFoundError: No module named 'docopt'```错误，请下载[docopt的whl](https://www.piwheels.org/project/docopt/)手动安装。在终端执行以下命令:
+```../../../python_embeded/python.exe -s -m pip install path/docopt-0.6.2-py2.py3-none-any.whl``` path为whl文件的路径名。
+
 ### Cannot import name 'guidedFilter' from 'cv2.ximgproc'
 这个错误是```opencv-contrib-python```没有正确安装，或者安装后又安装了其他opencv包导致。    
 
@@ -70,8 +80,28 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 ## 更新说明
 <font size="4">**如果本插件更新后出现依赖包错误，请重新安装相关依赖包。
 
+* [CropByMaskV2](#CropByMaskV2) 增加裁切尺寸按倍数取整选项。
+* 添加 [CheckMask](#CheckMask) 节点, 用于检测遮罩是否包含足够的有效区域。
+* 添加 [HSVValue](#HSVValue) 节点, 用于转换色值为HSV值。
+* [BooleanOperatorV2](#BooleanOperatorV2), [NumberCalculatorV2](#NumberCalculatorV2), [Integer](#Integer), [Float](#Float), [Boolean](#Boolean)节点增加string输出，将值输出为字符串，以配合[SwitchCase](#SwitchCase)使用。
+* 添加 [SwitchCase](#SwitchCase) 节点, 根据匹配字符串切换输出。可用于任意类型的数据切换。
+* 添加 [String](#String) 节点, 用于输出字符串。这是TextBox简化版节点。
+* 添加 [If](#If) 节点，根据布尔值条件输入切换输出。可用于任意类型的数据切换。
+* 添加 [StringCondition](#StringCondition) 节点, 可判断文本中是否包含或不包含子字符串。
+* 添加 [NumberCalculatorV2](#NumberCalculatorV2) 节点，增加开方运算。添加 [BooleanOperatorV2](#BooleanOperatorV2) 节点, 增加大小于、大小于等于逻辑判断。这两个节点可接入数值输入也可在节点内输入数值。注意:数值输入更优先，当有输入时节点内数值将无效。
+* 添加 [SD3NegativeConditioning](#SD3NegativeConditioning) 节点, 把SD3的Negative Conditioning 的4个节点封装为一个单独节点。
+* [ImageRemoveAlpha](#ImageRemoveAlpha) 节点增加mask可选输入。
+* 添加 [HLFrequencyDetailRestore](#HLFrequencyDetailRestore)节点, 使用低频滤波加保留高频来恢复图像细节，图像融合性更好。
+* 添加 [AddGrain](#AddGrain) 和 [MaskGrain](#MaskGrain) 节点, 为图片或遮罩添加噪声。
+* 添加 [FilmV2](#FilmV2) 节点, 在之前基础上增加了fastgrain方法，生成噪点速度加快了10倍。
+* 添加 [ImageToMask](#ImageToMask) 节点，可将图片转为遮罩。支持以LAB，RGBA, YUV 和 HSV模式的任意通道转换为遮罩，同时提供色阶调整。支持mask可选输入以获取仅包括有效部分的遮罩。
+* 部分节点中blackpoint和whitepoint选项改为滑块调节，便于更直观显示。包括[MaskEdgeUltraDetailV2](#MaskEdgeUltraDetailV2), [SegmentAnythingUltraV2](#SegmentAnythingUltraV2), [RmBgUltraV2](#RmBgUltraV2)，[PersonMaskUltraV2](#PersonMaskUltraV2)，[BiRefNetUltra](#BiRefNetUltra), [SegformerB2ClothesUltra](#SegformerB2ClothesUltra), [BlendIfMask](#BlendIfMask) 和 [Levels](#Levels)。
+* [ImageScaleRestoreV2](#ImageScaleRestoreV2) 和[ImageScaleByAspectRatioV2](#ImageScaleByAspectRatioV2) 节点增加TotalPixel方法缩放图片。
+* 添加 [MediapipeFacialSegment](#MediapipeFacialSegment) 节点， 用于分割面部五官，包括左右眉、眼睛、嘴唇和牙齿。
+* 添加 [BatchSelector](#BatchSelector) 节点， 用于从批量图片或遮罩中获取指定的图片或遮罩。
+* LayerUtility大类新建子目录SystemIO, Data, Prompt。一部分节点被分类到子目录。
 * 添加 [MaskByColor](#MaskByColor) 节点, 根据选择的颜色生成遮罩。
-* 添加 [LoadPSD](#LoadPSD) 节点, 读取psd格式并输出图层图片。
+* 添加 [LoadPSD](#LoadPSD) 节点, 读取psd格式并输出图层图片。注意这个节点需要安装psd_tools依赖包，如果安装psd_tool中出现```ModuleNotFoundError: No module named 'docopt'```错误，请下载[docopt的whl](https://www.piwheels.org/project/docopt/)手动安装。
 * 添加 [SegformerB2ClothesUltra](#SegformerB2ClothesUltra)节点，用于分割人物服装。模型分割代码来自[StartHua](https://github.com/StartHua/Comfyui_segformer_b2_clothes)，感谢原作者。
 * [SaveImagePlus](#SaveImagePlus)节点增加输出工作流为json功能，支持使用```%date```和```%time```在路径和文件名嵌入时间，增加预览开关。
 * 添加 [SaveImagePlus](#SaveImagePlus)节点，可自定义保存图片的目录，文件名增加时间戳，选择保存格式，设置图片压缩率，设置是否保存工作流，以及可选给图片添加隐形水印。
@@ -529,6 +559,7 @@ CropByMask的V2升级版。支持crop_box输入，方便裁切相同尺寸的图
 ![image](image/corp_by_mask_v2_node.jpg)    
 * ```mask_for_crop```更名为```mask```。
 * 增加```crop_box```可选输入，如果这里有输入将忽略遮罩探测，直接使用此数据裁切。
+* 增加```round_to_multiple```选项，使裁切边长倍数取整。例如设置为8，宽和高将强制设置为8的倍数。
 
 
 ### <a id="table1">RestoreCropBox</a>
@@ -574,7 +605,7 @@ ImageScaleRestore的V2升级版。
 节点选项说明:   
 ![image](image/image_scale_restore_v2_node.jpg)    
 在ImageScaleRestore基础上做了如下改变:
-* scale_by: 允许按长边、短边、宽度或高度指定尺寸缩放。
+* scale_by: 允许按长边、短边、宽度、高度或总像素指定尺寸缩放。此处选项设为by_scale时使用scale值，其他选项时使用scale_by_lengtt值。
 * scale_by_length: 这里的数值作为scale_by指定边的长度。
 
 
@@ -629,8 +660,8 @@ ImageScaleByAspectRatio的V2升级版
 节点选项说明:   
 ![image](image/image_scale_by_aspect_ratio_v2_node.jpg)    
 在ImageScaleByAspectRatio基础上做了如下改变:
-* scale_by: 允许按长边、短边、宽度或高度指定尺寸缩放。
-* scale_by_length: 这里的数值作为scale_by指定边的长度。
+* scale_to_side: 允许按长边、短边、宽度、高度或总像素指定尺寸缩放。
+* scale_to_length: 这里的数值作为scale_to_side指定边的长度, 或者总像素数量(kilo pixels)。
 
 
 
@@ -731,6 +762,12 @@ ImageScaleByAspectRatio的V2升级版
 节点选项说明:
 * color_value： 支持十六进制(HEX)或十进制(DEC)色值，应是string或tuple类型，强行接入其他类型将导致错误。
 
+### <a id="table1">HSVValue</a>
+将色值输出为单独的H, S, V三个10进制数值(最大值255)。支持ColorPicker节点输出的HEX和DEC格式。
+![image](image/hsv_value_node.jpg)    
+
+节点选项说明:
+* color_value： 支持十六进制(HEX)或十进制(DEC)色值，应是string或tuple类型，强行接入其他类型将导致错误。
 
 ### <a id="table1">GetColorTone</a>
 从图片中获取主颜色或平均色。
@@ -971,6 +1008,8 @@ GradientImage的V2升级版。
 
 节点选项说明:
 ![image](image/image_remove_alpha_node.jpg)    
+* RGBA_image: 输入的图像，支持RGBA或RGB模式。
+* mask:可选输入遮罩。如果有输入遮罩将优先使用, 忽略RGBA_image自带的alpha。
 * fill_background: 是否填充背景。
 * background_color<sup>4</sup>: 背景颜色。
 
@@ -1019,6 +1058,19 @@ cropped_mask: 裁切后的遮罩。
 * scale_by: 允许按长边、短边、宽度或高度指定尺寸缩放。
 * scale_by_length: 这里的数值作为scale_by指定边的长度。
 
+### <a id="table1">HLFrequencyDetailRestore</a>
+使用低频滤波加保留高频来恢复图像细节。相比[kijai's DetailTransfer](https://github.com/kijai/ComfyUI-IC-Light), 这个节点在保留细节的同时，与环境的融合度更好。
+![image](image/hl_frequency_detail_restore_example.jpg)    
+
+节点选项说明:  
+![image](image/hl_frequency_detail_restore_node.jpg)    
+* image: 背景图片输入。
+* detail_image: 细节原图输入。
+* mask: 可选输入，如果有遮罩输入则仅恢复遮罩部分的细节。
+* keep_high_freq: 保留的高频部分范围。数值越大，保留的高频细节越丰富。
+* erase_low_freq: 擦除的低频部分范围。数值越大，擦除的低频范围越多。
+* mask_blur: 遮罩边缘模糊度。仅在有遮罩输入的情况下有效。
+
 
 ### <a id="table1">GetImageSize</a>
 ![image](image/get_image_size_node.jpg)    
@@ -1039,6 +1091,18 @@ cropped_mask: 裁切后的遮罩。
 * random_output: 当此项为True时, 将忽略```output```设置，在所有的有效输入中随机输出一组。
 
 
+### <a id="table1">BatchSelector</a>
+从批量图片或遮罩中获取指定的图片或遮罩。
+![image](image/batch_selector_example.jpg)    
+
+节点选项说明:  
+![image](image/batch_selector_node.jpg)    
+* images: 批量图片输入。此输入为可选项。
+* masks: 批量遮罩输入。此输入为可选项。
+* select: 选择输出的图片或遮罩在批量的索引值，0为第一张。可以输入多个值，中间用任意非数字字符分隔，包括不仅限于逗号，句号，分号，空格或者字母，甚至中文。
+注意:如果数值超出批量，将输出最后一张。如果没有对应的输入，将输出一个空的64x64图片或64x64黑色遮罩。
+
+
 ### <a id="table1">TextJoin</a>
 ![image](image/text_join_example.jpg)    
 将多段文字组合为一段。
@@ -1052,7 +1116,11 @@ cropped_mask: 裁切后的遮罩。
 
 ### <a id="table1">TextBox</a>
 ![image](image/text_box_node.jpg)    
-输出一段字符串。
+输出字符串。
+
+### <a id="table1">String</a>
+![image](image/string_node.jpg)    
+输出字符串。与TextBox作用相同。
 
 ### <a id="table1">Integer</a>
 ![image](image/integer_node.jpg)    
@@ -1072,12 +1140,70 @@ cropped_mask: 裁切后的遮罩。
 
 <sup>*</sup>  输入仅支持布尔值、整数和浮点数，强行接入其他数据将导致错误。
 
+### <a id="table1">NumberCalculatorV2</a>
+![image](image/number_calculator_v2_node.jpg)  
+NumberCalculator的升级版，增加了节点内数值输入，增加了开方运算。开方运算选项为```nth_root```
+注意:数值输入更优先，当有输入时节点内数值将无效。
+
 
 ### <a id="table1">BooleanOperator</a>
 ![image](image/boolean_operator_node.jpg)    
 对两个数值进行布尔运算并输出结果<sup>*</sup>。支持的运算包括```==```、```!=```、```and```、```or```、```xor```、```not```、```min```、```max```。
 
 <sup>*</sup>  输入仅支持布尔值、整数和浮点数，强行接入其他数据将导致错误。数值之间的```and```运算输出较大的数，```or```运算输出较小的数。
+
+
+### <a id="table1">BooleanOperatorV2</a>
+![image](image/boolean_operator_v2_node.jpg)  
+BooleanOperator的升级版，增加了节点内数值输入，增加了大于、小于、大于等于、小于等于的判断。
+注意:数值输入更优先，当有输入时节点内数值将无效。
+
+
+### <a id="table1">StringCondition</a>
+![image](image/string_condition_example.jpg)    
+判断文本中是否包含或不包含子字符串，输出布尔值。
+
+节点选项说明:    
+![image](image/string_condition_node.jpg)  
+* text: 输入的文本。
+* condition: 判断条件。```include```判断是否包含子字符串，```exclude```判断是否不包含子字符串。
+* sub_string: 子字符串文本。
+
+
+### <a id="table1">CheckMask</a>
+检测遮罩是否包含足够的有效区域, 输出布尔值。
+
+节点选项说明:    
+![image](image/check_mask_node.jpg)    
+* white_point: 判断遮罩是否有效的白点值，高于此值被计入有效。
+* area_percent: 有效区域所占百分比。检测有效区域占比超过此值则输出True。
+
+### <a id="table1">If</a>
+![image](image/if_example.jpg)    
+根据布尔值条件输入切换输出。可用于任意类型的数据切换，包括且不限于数值、字符串、图片、遮罩、模型、latent、pipe管线等。
+
+节点选项说明:    
+![image](image/if_node.jpg)    
+* if_condition: 条件输入。支持布尔值、整数、浮点数和字符串输入。输入数值时，0被判断为False；输入字符串时，空字符串被判断为Flase。
+* when_True: 当条件为True时，将输出此项。
+* when_False: 当条件为False时，将输出此项。
+
+
+### <a id="table1">SwitchCase</a>
+![image](image/switch_case_example.jpg)    
+根据匹配字符串切换输出。可用于任意类型的数据切换，包括且不限于数值、字符串、图片、遮罩、模型、latent、pipe管线等。最多支持3组case切换。
+将case与```switch_condition```进行比较，如果相同，则输出对应的输入项。如果有相同的case则按顺序优先输出。如果没有匹配的case，则输出默认的输入项。请注意，字符串区分大小写和中英文全角半角。
+
+节点选项说明:    
+![image](image/switch_case_node.jpg)    
+* input_default: 用于默认输出的输入项。此输入是必选项。
+* input_1: 用于匹配```case_1```的输入项。此输入是可选项。
+* input_2: 用于匹配```case_2```的输入项。此输入是可选项。
+* input_3: 用于匹配```case_3```的输入项。此输入是可选项。
+* switch_condition: 用于与case判断的字符串。
+* case_1: case_1字符串。
+* case_2: case_2字符串。
+* case_3: case_3字符串。
 
 
 ### <a id="table1">PurgeVRAM</a>
@@ -1144,6 +1270,7 @@ cropped_mask: 裁切后的遮罩。
 ![image](image/load_image_example_psd_file.jpg)    
 ![image](image/load_image_example.jpg)    
 加载PSD格式文件，并导出图层。
+注意这个节点需要安装psd_tools依赖包，如果安装psd_tool中出现```ModuleNotFoundError: No module named 'docopt'```错误，请下载[docopt的whl](https://www.piwheels.org/project/docopt/)手动安装。
 
 节点选项说明:  
 ![image](image/load_image_node.jpg)    
@@ -1158,6 +1285,14 @@ cropped_mask: 裁切后的遮罩。
 flat_image: psd预览图。
 layer_iamge: 查找的图层输出。
 all_layers: 包含全部图层的批量图片。
+
+### <a id="table1">SD3NegativeConditioning</a>
+![image](image/sd3_negative_conditioning_node_note.jpg)  
+把SD3的Negative Conditioning 的4个节点封装为一个单独节点。
+
+节点选项说明:  
+![image](image/sd3_negative_conditioning_node.jpg)    
+* zero_out_start: 设置Negative ConditioningZeroOut的ConditioningSetTimestepRange start值, 此数值与Negative的ConditioningSetTimestepRange end值相同。
 
 
 # <a id="table1">LayerMask</a>
@@ -1361,6 +1496,20 @@ PersonMaskUltra的V2升级版，增加了VITMatte边缘处理方法。(注意:�
 * yolo_masks: yolo识别出来的所有遮罩，每个单独的遮罩输出为一个mask。
 
 
+### <a id="table1">MediapipeFacialSegment</a>
+使用Mediapipe模型检测人脸五官，分割左右眉、眼睛、嘴唇和牙齿。
+![image](image/mediapipe_facial_segment_example.jpg)    
+
+节点选项说明:  
+![image](image/mediapipe_facial_segment_node.jpg)    
+* left_eye: 左眼识别开关。
+* left_eyebrow: 左眉识别开关。
+* right_eye: 右眼识别开关。
+* right_eyebrow: 右眉识别开关。
+* lips: 嘴唇识别开关。
+* tooth: 牙齿识别开关。
+
+
 ### <a id="table1">MaskByColor</a>
 根据颜色生成遮罩。
 ![image](image/mask_by_color_example.jpg)    
@@ -1375,6 +1524,23 @@ PersonMaskUltra的V2升级版，增加了VITMatte边缘处理方法。(注意:�
 * fix_gap: 修补遮罩中的空隙。如果遮罩中有比较明显的空隙，适当调高此数值。
 * fix_threshold: 修补遮罩的阈值。 
 * invert_mask: 是否反转遮罩。
+
+### <a id="table1">ImageToMask</a>
+将图片转为遮罩。支持以LAB，RGBA, YUV 和 HSV模式的任意通道转换为遮罩，同时提供色阶调整。支持mask可选输入以获取仅包括有效部分的遮罩。
+![image](image/image_to_mask_example.jpg)    
+
+节点选项说明:  
+![image](image/image_to_mask_node.jpg)    
+* image: 图像输入。
+* mask: 遮罩输入。此输入是可选项，如果有遮罩则仅遮罩内的颜色被纳入范围。
+* channel: 通道选择。可以选择LAB，RGBA, YUV 和 HSV模式的任意一个通道。
+* black_point<sup>*</sup>: 遮罩黑点值。取值范围0-255, 默认值0。
+* white_point<sup>*</sup>: 遮罩白点值。取值范围0-255, 默认值255。
+* gray_point: 遮罩灰点值。取值范围0.01-9.99, 默认1。
+* invert_output_mask: 是否反转遮罩。
+
+<sup>*</sup><font size="3">如果 black_point 或 output_black_point 数值大于 white_point 或 output_white_point，则两个数值将交换，较大的数值作为white_point使用，较小的数值作为black_point使用。</font>    
+
 
 
 ### <a id="table1">Shadow</a> & Highlight Mask
@@ -1516,6 +1682,16 @@ MaskGrow与MaskEdgeShrink效果对比
 * stroke_width: 描边宽度。
 * blur: 描边模糊。
 
+### <a id="table1">MaskGrain</a>
+为遮罩生成噪声。
+![image](image/mask_grain_example.jpg)    
+
+节点选项说明:  
+![image](image/mask_grain_node.jpg)    
+* grain: 噪声强度。
+* invert_mask: 是否反转遮罩。
+
+
 ### <a id="table1">MaskPreview</a>
 预览mask
 ![image](image/mask_invert.jpg)    
@@ -1616,6 +1792,11 @@ mask反转
 * blur_focus_spread: 焦点扩散范围。数值越大，清晰的范围越大。
 * focal_depth: 模拟虚焦的焦点距离。0表示焦点在最远，1表示焦点在最近。此项设置只在depth_map有输入时才生效。
 
+### <a id="table1">FilmV2</a>
+Film节点的升级版, 在之前基础上增加了fastgrain方法，生成噪点速度加快了10倍。fastgrain的代码来自[github.com/spacepxl/ComfyUI-Image-Filters](https://github.com/spacepxl/ComfyUI-Image-Filters)的BetterFilmGrain部分，感谢原作者。
+![image](image/film_v2_node.jpg)    
+
+
 ### <a id="table1">LightLeak</a>
 模拟胶片漏光效果。请下载[light_leak.pkl(百度网盘)](https://pan.baidu.com/s/1QY1ZyYm885krrqDB2t8lPg?pwd=yvs3)或[light_leak.pkl(Google Drive)(https://drive.google.com/file/d/1DcH2Zkyj7W3OiAeeGpJk1eaZpdJwdCL-/view?usp=sharing)将文件复制到```ComfyUI/models/layerstyle``` 文件夹。
 ![image](image/light_leak_example.jpg)    
@@ -1651,6 +1832,17 @@ mask反转
 
 节点选项说明:
 * blur: 模糊大小。
+
+### <a id="table1">AddGrain</a>
+给图片增加噪声。
+![image](image/add_grain_example.jpg)    
+
+节点选项说明:
+![image](image/add_grain_node.jpg)    
+* grain_power: 噪声强度。
+* grain_scale: 噪声的大小。
+* grain_sat: 噪声的色彩饱和度。
+
 
 ## <a id="table1">节点注解</a>
 <sup>1</sup>  image、mask和background_image(如果有输入)这三项必须是相同的尺寸。    

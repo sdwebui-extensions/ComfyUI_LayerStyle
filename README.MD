@@ -2,7 +2,7 @@
 
 [中文说明点这里](./README_CN.MD)    
 
-如果您有定制节点、定制工作流业务，请联系email [chflame@163.com](mailto:chflame@163.com).
+商务合作请联系email [chflame@163.com](mailto:chflame@163.com).
 
 For business cooperation, please contact email [chflame@163.com](mailto:chflame@163.com).
 
@@ -41,6 +41,16 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 ## Common Issues
 If the node cannot load properly or there are errors during use, please check the error message in the ComfyUI terminal window. The following are common errors and their solutions.
 
+### ModuleNotFoundError: No module named 'psd_tools'
+This error is that the ```psd_tools``` were not installed correctly.   
+
+Solution:
+* Close ComfyUI and open the terminal window in the plugin directory and execute the following command:
+```../../../python_embeded/python.exe -s -m pip install psd_tools```
+If error occurs during the installation of psd_tool, such as ```ModuleNotFoundError: No module named 'docopt'``` , please download [docopt's whl](https://www.piwheels.org/project/docopt/) and manual install it. 
+execute the following command in terminal window:
+```../../../python_embeded/python.exe -s -m pip install path/docopt-0.6.2-py2.py3-none-any.whl``` the ```path``` is path name of whl file.
+
 ### Cannot import name 'guidedFilter' from 'cv2.ximgproc'
 This error is caused by incorrect version of the ```opencv-contrib-python``` package，or this package is overwriteen by other opencv packages. 
 
@@ -60,7 +70,7 @@ This error is caused by the low version of ```protobuf``` package.
 ### ValueError: Trimap did not contain foreground values (xxxx...)
 This error is caused by the mask area being too large or too small when using the ```PyMatting``` method to handle the mask edges.    
 
-Solution：
+Solution:
 * Please adjust the parameters to change the effective area of the mask. Or use other methods to handle the edges.
 
 ### Requests.exceptions.ProxyError: HTTPSConnectionPool(xxxx...)
@@ -70,8 +80,27 @@ When this error has occurred, please check the network environment.
 ## Update
 <font size="4">**If the dependency package error after updating, please reinstall the relevant dependency packages. </font><br />    
 
+* [CropByMaskV2](#CropByMaskV2) add option to round the cutting size by multiples.
+* Commit [CheckMask](#CheckMask) node, it detect whether the mask contains sufficient effective areas. Commit [HSVValue](#HSVValue) node, it convert color values to HSV values.
+* [BooleanOperatorV2](#BooleanOperatorV2), [NumberCalculatorV2](#NumberCalculatorV2), [Integer](#Integer), [Float](#Float), [Boolean](#Boolean) nodes add string output to output the value as a string for use with [SwitchCase](#SwitchCase).
+* Commit [SwitchCase](#SwitchCase) node, Switches the output based on the matching string. Can be used for any type of data switching.
+* Commit [String](#String) node, Used to output a string. It is the TextBox simplified node.
+* Commit [If](#If) node，Switches output based on Boolean conditional input. Can be used for any type of data switching.
+* Commit [StringCondition](#StringCondition) node, Determines whether the text contains or does not contain a substring.
+* Commit [NumberCalculatorV2](#NumberCalculatorV2) node，Add the nth root operation. Commit [BooleanOperatorV2](#BooleanOperatorV2) node, Increasing greater/less than, greater/less then or equal logical judgment. The two nodes can access numeric inputs and can input numeric values within the node. Note: Numeric input takes precedence. Values in nodes will not be valid when there is input.
+* Commit [SD3NegativeConditioning](#SD3NegativeConditioning) node, Encapsulate the four nodes of Negative Condition in SD3 into a separate node.
+* [ImageRemoveAlpha](#ImageRemoveAlpha) node add optional mask input.
+* Commit [HLFrequencyDetailRestore](#HLFrequencyDetailRestore) node, Using low-frequency filtering and high-frequency preserving to restore image details, the fusion is better.
+* Commit [AddGrain](#AddGrain) and [MaskGrain](#MaskGrain) nodes, Add noise to a picture or mask.
+* Commit [FilmV2](#FilmV2) node, The fastgrain method is added on the basis of the previous one, and the noise generation speed is 10 times faster.
+* Commit [ImageToMask](#ImageToMask) node, it can be converted image into mask. Supports converting any channel in LAB, RGBA, YUV, and HSV modes into masks, while providing color scale adjustment. Support mask optional input to obtain masks that only include valid parts.
+* The blackpoint and whitepoint options in some nodes have been changed to slider adjustment for a more intuitive display. Include [MaskEdgeUltraDetailV2](#MaskEdgeUltraDetailV2), [SegmentAnythingUltraV2](#SegmentAnythingUltraV2), [RmBgUltraV2](#RmBgUltraV2)，[PersonMaskUltraV2](#PersonMaskUltraV2)，[BiRefNetUltra](#BiRefNetUltra), [SegformerB2ClothesUltra](#SegformerB2ClothesUltra), [BlendIfMask](#BlendIfMask) and [Levels](#Levels).
+* [ImageScaleRestoreV2](#ImageScaleRestoreV2) and  [ImageScaleByAspectRatioV2](#ImageScaleByAspectRatioV2) nodes add the ```total_pixel``` method to scale images.
+* Commit [MediapipeFacialSegment](#MediapipeFacialSegment) node，Used to segment facial features, including left and right eyebrows, eyes, lips, and teeth.
+* Commit [BatchSelector](#BatchSelector) node，Used to retrieve specified images or masks from batch images or masks.
+* LayerUtility creates new subdirectories such as SystemIO, Data, and Prompt. Some nodes are classified into subdirectories.
 * Commit [MaskByColor](#MaskByColor) node, Generate a mask based on the selected color.
-* Commit [LoadPSD](#LoadPSD) node, It read the psd format, and output layer images.
+* Commit [LoadPSD](#LoadPSD) node, It read the psd format, and output layer images. Note that this node requires the installation of the ```psd_tools``` dependency package, If error occurs during the installation of psd_tool, such as ```ModuleNotFoundError: No module named 'docopt'``` , please download [docopt's whl](https://www.piwheels.org/project/docopt/) and manual install it. 
 * Commit [SegformerB2ClothesUltra](#SegformerB2ClothesUltra) node, it used to segment character clothing. The model segmentation code is from[StartHua](https://github.com/StartHua/Comfyui_segformer_b2_clothes),  thanks to the original author.
 * [SaveImagePlus](#SaveImagePlus) node adds the output workflow to the json function, supports ```%date``` and ```%time``` to embeddint date or time to path and filename, and adds the preview switch.
 * Commit [SaveImagePlus](#SaveImagePlus) node，It can customize the directory where the picture is saved, add a timestamp to the file name, select the save format, set the image compression rate, set whether to save the workflow, and optionally add invisible watermarks to the picture.
@@ -537,6 +566,7 @@ The following changes have been made based on CropByMask:
 ![image](image/corp_by_mask_v2_node.jpg)    
 * The input ```mask_for_crop``` reanme to ```mask```。
 * Add optional inputs to the ```crop_box```. If there are inputs here, mask detection will be ignored and this data will be directly used for cropping.
+* Add the option ```round_to_multiple``` to round the trimming edge length multiple. For example, setting it to 8 will force the width and height to be multiples of 8.
 
 ### <a id="table1">RestoreCropBox</a>
 Restore the cropped image to the original image by [CropByMask](#CropByMask).
@@ -580,7 +610,7 @@ The V2 upgraded version of ImageScaleRestore.
 Node options:   
 ![image](image/image_scale_restore_v2_node.jpg)    
 The following changes have been made based on ImageScaleRestore:
-* scale_by: Allow scaling by specified dimensions for longest, shortest, width, or height.
+* scale_by: Allow scaling by specified dimensions for long, short, width, height, or total pixels. When this option is set to by_scale, use the scale value, and for other options, use the scale_by_length value.
 * scale_by_length: The value here is used as ```scale_by``` to specify the length of the edge.
 
 ### <a id="table1">ImageMaskScaleAs</a>
@@ -639,8 +669,8 @@ V2 Upgraded Version of ImageScaleByAspectRatio
 Node options:   
 ![image](image/image_scale_by_aspect_ratio_v2_node.jpg)    
 The following changes have been made based on ImageScaleByAspectRatio:
-* scale_by: Allow scaling by specified dimensions for longest, shortest, width, or height.
-* scale_by_length: The value here is used as ```scale_by``` to specify the length of the edge.
+* scale_to_side: Allow scaling by specified dimensions for long, short, width, height, or total pixels.
+* scale_to_length: The numerical value here serves as the length of the specified edge or the total pixels (kilo pixels) for scale_to_side.
 
 
 
@@ -737,6 +767,13 @@ Output type:
 Output the color value as a single R, G, B three decimal values. Supports HEX and DEC formats for ColorPicker node output.
 
 ![image](image/RGB_value_example.jpg)    
+
+Node Options:
+* color_value: Supports hexadecimal (HEX) or decimal (DEC) color values and should be of string or tuple type. Forcing in other types will result in an error.
+
+### <a id="table1">HSVValue</a>
+Output color values as individual decimal values of H, S, and V (maximum value of 255). Supports HEX and DEC formats for ColorPicker node output.
+![image](image/hsv_value_node.jpg)    
 
 Node Options:
 * color_value: Supports hexadecimal (HEX) or decimal (DEC) color values and should be of string or tuple type. Forcing in other types will result in an error.
@@ -982,6 +1019,8 @@ Remove the alpha channel from the image and convert it to RGB mode. you can choo
 
 Node options:
 ![image](image/image_remove_alpha_node.jpg)    
+* RGBA_image: The input image supports RGBA or RGB modes.
+* mask: Optional input mask. If there is an input mask, it will be used first, ignoring the alpha that comes with RGBA_image.
 * fill_background: Whether to fill the background.
 * background_color<sup>4</sup>: Color of background.
 
@@ -1031,6 +1070,19 @@ The V2 upgrad version of ```ImageAutoCrop```, it has made the following changes 
 * scale_by_length: The value here is used as ```scale_by``` to specify the length of the edge.
 
 
+### <a id="table1">HLFrequencyDetailRestore</a>
+Using low frequency filtering and retaining high frequency to recover image details. Compared to [kijai's DetailTransfer](https://github.com/kijai/ComfyUI-IC-Light), this node is better integrated with the environment while retaining details.
+![image](image/hl_frequency_detail_restore_example.jpg)    
+
+Node Options:  
+![image](image/hl_frequency_detail_restore_node.jpg)    
+* image: Background image input.
+* detail_image: Detail image input.
+* mask: Optional input, if there is a mask input, only the details of the mask part are restored.
+* keep_high_freq: Reserved range of high frequency parts. The larger the value, the richer the retained high-frequency details.
+* erase_low_freq: The range of low frequency parts of the erasure. The larger the value, the more the low frequency range of the erasure.
+* mask_blur: Mask edge blur. Valid only if there is masked input.
+
 ### <a id="table1">GetImageSize</a>
 ![image](image/get_image_size_node.jpg)    
 Obtain the width and height of the image.
@@ -1049,6 +1101,19 @@ Node options:
 * output: Switch output. the value is the corresponding input group. when the ```random-output``` option is True, this setting will be ignored.
 * random_output: When this is true, the ```output``` setting will be ignored and a random set will be output among all valid inputs.
 
+
+### <a id="table1">BatchSelector</a>
+Retrieve specified images or masks from batch images or masks.
+![image](image/batch_selector_example.jpg)    
+
+Node Options:  
+![image](image/batch_selector_node.jpg)    
+* images: Batch images input. This input is optional.
+* masks: Batch masks input. This input is optional.
+* select: Select the output image or mask at the batch index value, where 0 is the first image. Multiple values can be entered, separated by any non numeric character, including but not limited to commas, periods, semicolons, spaces or letters, and even Chinese characters.
+Note: If the value exceeds the batch size, the last image will be output. If there is no corresponding input, an empty 64x64 image or a 64x64 black mask will be output.
+
+
 ### <a id="table1">TextJoin</a>
 ![image](image/text_join_example.jpg)    
 Combine multiple paragraphs of text into one.
@@ -1060,10 +1125,13 @@ Used to provide assistance for workflow debugging. When running, the properties 
 This node allows any type of input.
 
 
-
 ### <a id="table1">TextBox</a>
 ![image](image/text_box_node.jpg)    
 Output a string.
+
+### <a id="table1">String</a>
+![image](image/string_node.jpg)    
+Output a string. same as TextBox.
 
 ### <a id="table1">Integer</a>
 ![image](image/integer_node.jpg)    
@@ -1083,12 +1151,69 @@ Performs mathematical operations on two numeric values and outputs integer and f
 
 <sup>*</sup>  The input only supports boolean, integer, and floating point numbers, forcing in other data will result in error.
 
+### <a id="table1">NumberCalculatorV2</a>
+![image](image/number_calculator_v2_node.jpg)  
+The upgraded version of NumberCalculator has added numerical inputs within nodes and square root operations. The square root operation option is ```nth_root```
+Note: The input takes priority, and when there is input, the values within the node will be invalid.
 
 ### <a id="table1">BooleanOperator</a>
 ![image](image/boolean_operator_node.jpg)    
 Perform a Boolean operation on two numeric values and output the result<sup>*</sup>. Supported operations include```==```, ```!=```, ```and```, ```or```, ```xor```, ```not```, ```min```, ```max```.
 
 <sup>*</sup>  The input only supports boolean, integer, and floating point numbers, forcing in other data will result in error. The ```and``` operation between the values outputs a larger number, and the ```or``` operation outputs a smaller number.
+
+
+### <a id="table1">BooleanOperatorV2</a>
+![image](image/boolean_operator_v2_node.jpg)  
+The upgraded version of Boolean Operator has added numerical inputs within nodes and added judgments for greater than, less than, greater than or equal to, and less than or equal to.
+Note: The input takes priority, and when there is input, the values within the node will be invalid.
+
+
+### <a id="table1">StringCondition</a>
+![image](image/string_condition_example.jpg)    
+Determine whether the text contains or does not contain substrings, and output a Boolean value.
+
+Node Options:    
+![image](image/string_condition_node.jpg)  
+* text: Input text.
+* condition: Judgment conditions. ```include``` determines whether it contains a substring, and ```exclude``` determines whether it does not.
+* sub_string: Substring.
+
+### <a id="table1">CheckMask</a>
+Check if the mask contains enough valid areas and output a Boolean value.
+
+Node Options:    
+![image](image/check_mask_node.jpg)    
+* white_point: The white point threshold used to determine whether the mask is valid is considered valid if it exceeds this value.
+* area_percent: The percentage of effective areas. If the proportion of effective areas exceeds this value, output True.
+
+
+### <a id="table1">If</a>
+![image](image/if_example.jpg)    
+Switches output based on Boolean conditional input. It can be used for any type of data switching, including but not limited to numeric values, strings, pictures, masks, models, latent, pipe pipelines, etc.
+
+Node Options:    
+![image](image/if_node.jpg)    
+* if_condition: Conditional input. Boolean, integer, floating point, and string inputs are supported. When entering a value, 0 is judged to be False; When a string is entered, an empty string is judged as Flase.
+* when_True: This item is output when the condition is True.
+* when_False: This item is output when the condition is False.
+
+### <a id="table1">SwitchCase</a>
+![image](image/switch_case_example.jpg)    
+Switches the output based on the matching string. It can be used for any type of data switching, including but not limited to numeric values, strings, pictures, masks, models, latent, pipe pipelines, etc. Supports up to 3 sets of case switches.
+Compare case to ```switch_condition``` , if the same, output the corresponding input. If there are the same cases, the output is prioritized in order. If there is no matching case, the default input is output. 
+Note that the string is case sensitive and Chinese and English full-width and half-width.
+
+Node Options:    
+![image](image/switch_case_node.jpg)    
+* input_default: Input entry for default output. This input is required.
+* input_1: Input entry used to match ```case_1```. This input is optional.
+* input_2: Input entry used to match ```case_2```. This input is optional.
+* input_3: Input entry used to match ```case_3```. This input is optional.
+* switch_condition: String used to judge with case.
+* case_1: case_1 string.
+* case_2: case_2 string.
+* case_3: case_3 string.
 
 
 ### <a id="table1">PurgeVRAM</a>
@@ -1158,6 +1283,8 @@ Node Options:
 ![image](image/load_image_example_psd_file.jpg)    
 ![image](image/load_image_example.jpg)    
 Load the PSD format file and export the layers.
+Note that this node requires the installation of the ```psd_tools``` dependency package, If error occurs during the installation of psd_tool, such as ```ModuleNotFoundError: No module named 'docopt'``` , please download [docopt's whl](https://www.piwheels.org/project/docopt/) and manual install it. 
+
 
 Node Options:  
 ![image](image/load_image_node.jpg)    
@@ -1172,6 +1299,15 @@ Outputs:
 flat_image: PSD preview image.
 layer_iamge: Find the layer output.
 all_layers: Batch images containing all layers.
+
+
+### <a id="table1">SD3NegativeConditioning</a>
+![image](image/sd3_negative_conditioning_node_note.jpg)  
+Encapsulate the four nodes of Negative Condition in SD3 into a separate node.
+
+Node Options:  
+![image](image/sd3_negative_conditioning_node.jpg)    
+* zero_out_start: Set the ConditioningSetTimestepRange start value for Negative ConditioningZeroOut, which is the same as the ConditioningSetTimestepRange end value for Negative.
 
 
 # <a id="table1">LayerMask</a>
@@ -1375,6 +1511,19 @@ Outputs:
 * yolo_masks: For all masks identified by yolo, each individual mask is output as a mask.
 
 
+### <a id="table1">MediapipeFacialSegment</a>
+Use the Mediapipe model to detect facial features, segment left and right eyebrows, eyes, lips, and tooth.
+![image](image/mediapipe_facial_segment_example.jpg)    
+
+Node Options:  
+![image](image/mediapipe_facial_segment_node.jpg)    
+* left_eye: Recognition switch of left eye.
+* left_eyebrow: Recognition switch of left eyebrow.
+* right_eye: Recognition switch of right eye.
+* right_eyebrow: Recognition switch of right eyebrow.
+* lips: Recognition switch of lips.
+* tooth: Recognition switch of tooth.
+
 ### <a id="table1">MaskByColor</a>
 Generate a mask based on the selected color.
 ![image](image/mask_by_color_example.jpg)    
@@ -1389,6 +1538,23 @@ Node Options:
 * fix_gap: Repair the gaps in the mask. If there are obvious gaps in the mask, increase this value appropriately.
 * fix_threshold: The threshold for repairing masks. 
 * invert_mask: Whether to reverse the mask.
+
+### <a id="table1">ImageToMask</a>
+Convert the image to a mask. Supports converting any channel in LAB, RGBA, YUV, and HSV modes into masks, while providing color scale adjustment. Support mask optional input to obtain masks that only include valid parts.
+![image](image/image_to_mask_example.jpg)    
+
+Node Options:  
+![image](image/image_to_mask_node.jpg)    
+* image: Input image.
+* mask: This input is optional, if there is a mask, only the colors inside the mask are included in the range.
+* channel: Channel selection. You can choose any channel of LAB, RGBA, YUV, or HSV modes.
+* black_point<sup>*</sup>: Black dot value for the mask. The value range is 0-255, with a default value of 0.
+* white_point<sup>*</sup>: White dot value for the mask. The value range is 0-255, with a default value of 255.
+* gray_point: Gray dot values for the mask. The value range is 0.01-9.99, with a default of 1.
+* invert_output_mask: Whether to reverse the mask.
+
+<sup>*</sup><font size="3">If the black_point or output_black_point value is greater than white_point or output_white_point, the two values are swapped, with the larger value used as white_point and the smaller value used as black_point.</font>      
+
 
 ### <a id="table1">Shadow</a> & Highlight Mask
 Generate masks for the dark and bright parts of the image.
@@ -1528,6 +1694,17 @@ Node options:
 * stroke_width: Stroke width.
 * blur: Blur of stroke.
 
+### <a id="table1">MaskGrain</a>
+Generates noise for the mask.
+![image](image/mask_grain_example.jpg)    
+
+Node Options:  
+![image](image/mask_grain_node.jpg)    
+* grain: Noise intensity.
+* invert_mask: Whether to reverse the mask.
+
+
+
 ### <a id="table1">MaskPreview</a>
 Preview the input mask
 ![image](image/mask_invert.jpg)    
@@ -1628,6 +1805,10 @@ Node options:
 * blur_focus_spread: Focus diffusion range. larger value means larger clear range.
 * focal_depth: Simulate the focal distance of defucus. 0 indicates that focus is farthest, and 1 indicates that is closest. this setting only valid when input the depth_map.
 
+### <a id="table1">FilmV2</a>
+The upgraded version of the Film node adds the fastgrain method on the basis of the previous one, and the speed of generating noise is accelerated by 10 times. The code for fastgrain is from [github.com/spacepxl/ComfyUI-Image-Filters](https://github.com/spacepxl/ComfyUI-Image-Filters) BetterFilmGrain node, thanks to the original authors.
+![image](image/film_v2_node.jpg)    
+
 ### <a id="table1">LightLeak</a>
 Simulate the light leakage effect of the film. please download the [light_leak.pkl(Baidu Netdisk)](https://pan.baidu.com/s/1QY1ZyYm885krrqDB2t8lPg?pwd=yvs3) or [light_leak.pkl(Google Drive)]([light_leak.pkl(Google Drive)(https://drive.google.com/file/d/1DcH2Zkyj7W3OiAeeGpJk1eaZpdJwdCL-/view?usp=sharing)), copy the file to ```ComfyUI/models/layerstyle``` folder.
 ![image](image/light_leak_example.jpg)    
@@ -1664,6 +1845,17 @@ Make the image gaussian blur
 
 Node options:
 * blur: The size of blur.
+
+### <a id="table1">AddGrain</a>
+Add noise to the picture.
+![image](image/add_grain_example.jpg)    
+
+Node Options:
+![image](image/add_grain_node.jpg)    
+* grain_power: Noise intensity.
+* grain_scale: Noise size.
+* grain_sat: Color saturation of noise.
+
 
 ## Annotation for <a id="table1">notes</a>
 <sup>1</sup>  The layer_image, layer_mask and the background_image(if have input), These three items must be of the same size.    
