@@ -1359,7 +1359,10 @@ def load_RMBG_model():
     if not os.path.exists(model_path):
         model_path = os.path.join(folder_paths.models_dir, "rmbg", "RMBG-1.4", "model.pth")
     if not os.path.exists(model_path):
-        model_path = os.path.join(os.path.dirname(current_directory), "RMBG-1.4", "model.pth")
+        if os.path.exists("/stable-diffusion-cache/models/RMBG-1.4/model.pth"):
+            model_path = "/stable-diffusion-cache/models/RMBG-1.4/model.pth"
+        else:
+            model_path = os.path.join(os.path.dirname(current_directory), "RMBG-1.4", "model.pth")
     net.load_state_dict(torch.load(model_path, map_location=device))
     net.to(device)
     net.eval()
@@ -1408,6 +1411,8 @@ def generate_VITMatte(image:Image, trimap:Image, local_files_only:bool=False) ->
         image = image.resize((max_size, max_size), Image.BILINEAR)
         trimap = trimap.resize((max_size, max_size), Image.BILINEAR)
     model_name = "hustvl/vitmatte-small-composition-1k"
+    if os.path.exists("/stable-diffusion-cache/models/vitmatte"):
+        model_name = "/stable-diffusion-cache/models/vitmatte"
     vit_matte_model = load_VITMatte_model(model_name=model_name, local_files_only=local_files_only)
     inputs = vit_matte_model.processor(images=image, trimaps=trimap, return_tensors="pt")
     with torch.no_grad():
@@ -1452,10 +1457,13 @@ def get_a_person_mask_generator_model_path() -> str:
         model_file_path = os.path.join(folder_paths.models_dir, model_folder_name, model_name)
 
     if not os.path.exists(model_file_path):
-        model_url = f'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/{model_name}'
-        print(f"Downloading '{model_name}' model")
-        os.makedirs(model_file_path, exist_ok=True)
-        wget.download(model_url, model_file_path)
+        if os.path.exists("/stable-diffusion-cache/models/tflite/selfie_multiclass_256x256.tflite"):
+            model_file_path = "/stable-diffusion-cache/models/tflite/selfie_multiclass_256x256.tflite"
+        else:
+            model_url = f'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/{model_name}'
+            print(f"Downloading '{model_name}' model")
+            os.makedirs(model_file_path, exist_ok=True)
+            wget.download(model_url, model_file_path)
     return model_file_path
 
 def mask_edge_detail(image:torch.Tensor, mask:torch.Tensor, detail_range:int=8, black_point:float=0.01, white_point:float=0.99) -> torch.Tensor:
