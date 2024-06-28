@@ -5,6 +5,7 @@ import sys
 import __main__
 import filecmp
 import shutil
+import time
 
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
@@ -54,6 +55,7 @@ def get_ext_dir(subpath=None, mkdir=False):
 py = get_ext_dir("py")
 files = os.listdir(py)
 for file in files:
+    tic = time.time()
     if not file.endswith(".py"):
         continue
     name = os.path.splitext(file)[0]
@@ -63,5 +65,7 @@ for file in files:
         NODE_DISPLAY_NAME_MAPPINGS = {**NODE_DISPLAY_NAME_MAPPINGS, **imported_module.NODE_DISPLAY_NAME_MAPPINGS}
     except:
         pass
+    toc = time.time()
+    print(f'import {file}: {toc - tic}')
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
