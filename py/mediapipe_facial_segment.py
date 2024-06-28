@@ -1,8 +1,9 @@
 import numpy as np
-import mediapipe as mp
 from .imagefunc import *
 
 NODE_NAME = 'MediapipeFacialSegment'
+
+mp = None
 
 
 # 获取特征点的坐标
@@ -62,6 +63,9 @@ class FacialFeatureSegment:
         ret_images = []
         ret_masks = []
         scale_factor = 4
+        global mp
+        if mp is None:
+            import mediapipe as mp
 
         for i in image:
             face_image = tensor2pil(i.unsqueeze(0)).convert('RGB')

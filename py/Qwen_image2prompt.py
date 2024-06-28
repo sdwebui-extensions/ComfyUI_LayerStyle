@@ -1,11 +1,15 @@
 import os.path
 from pathlib import Path
-from transformers import AutoModel, AutoProcessor, StoppingCriteria, StoppingCriteriaList
+from transformers import StoppingCriteria
 import torch
 from PIL import Image
 from torchvision.transforms import ToPILImage
 from huggingface_hub import snapshot_download
 import folder_paths
+
+AutoModel = None
+AutoProcessor = None
+StoppingCriteriaList = None
 
 # Define the directory for saving files related to uform-gen2-qwen
 # files_for_uform_gen2_qwen = Path(folder_paths.folder_names_and_paths["LLavacheckpoints"][0][0]) / "files_for_uform_gen2_qwen"
@@ -31,6 +35,9 @@ class UformGen2QwenChat:
                                                 local_files_only=False,  # Set to False to allow downloading if not available locally
                                                 local_dir_use_symlinks="auto") # or set to True/False based on your symlink preference
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        global AutoModel, AutoProcessor
+        if AutoProcessor is None:
+            from transformers import AutoModel, AutoProcessor
         self.model = AutoModel.from_pretrained(self.model_path, trust_remote_code=True).to(self.device)
         self.processor = AutoProcessor.from_pretrained(self.model_path, trust_remote_code=True)
 
@@ -70,6 +77,9 @@ class UformGen2QwenChat:
         }
 
         model_inputs = {k: v.to(self.device) for k, v in model_inputs.items()}
+        global StoppingCriteriaList
+        if StoppingCriteriaList is None:
+            from transformers import StoppingCriteriaList
 
         output = self.model.generate(
             **model_inputs,
