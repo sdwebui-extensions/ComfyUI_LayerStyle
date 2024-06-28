@@ -2,9 +2,11 @@
 原始代码来自 https://github.com/StartHua/Comfyui_segformer_b2_clothes
 '''
 
-from transformers import SegformerImageProcessor, AutoModelForSemanticSegmentation
 import torch.nn as nn
 from .imagefunc import *
+
+SegformerImageProcessor = None
+AutoModelForSemanticSegmentation = None
 
 NODE_NAME = 'SegformerB2ClothesUltra'
 
@@ -16,6 +18,10 @@ def get_segmentation(tensor_image):
         model_folder_path = os.path.normpath(folder_paths.folder_names_and_paths['segformer_b2_clothes'][0][0])
     except:
         pass
+
+    global SegformerImageProcessor, AutoModelForSemanticSegmentation
+    if SegformerImageProcessor is None:
+        from transformers import SegformerImageProcessor, AutoModelForSemanticSegmentation
 
     processor = SegformerImageProcessor.from_pretrained(model_folder_path)
     model = AutoModelForSemanticSegmentation.from_pretrained(model_folder_path)
