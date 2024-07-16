@@ -1077,29 +1077,79 @@ def gamma_trans(image:Image, gamma:float) -> Image:
     _corrected = cv2.LUT(cv2_image,gamma_table)
     return cv22pil(_corrected)
 
-def apply_lut(image:Image, lut_file:str, log:bool=False) -> Image:
-    from colour.io.luts.iridas_cube import read_LUT_IridasCube, LUT3D, LUT3x1D
-    lut: Union[LUT3x1D, LUT3D] = read_LUT_IridasCube(lut_file)
-    lut.name = os.path.splitext(os.path.basename(lut_file))[0]  # use base filename instead of internal LUT name
+# def apply_lut(image:Image, lut_file:str, log:bool=False) -> Image:
+#     from colour.io.luts.iridas_cube import read_LUT_IridasCube, LUT3D, LUT3x1D
+#     lut: Union[LUT3x1D, LUT3D] = read_LUT_IridasCube(lut_file)
+#     lut.name = os.path.splitext(os.path.basename(lut_file))[0]  # use base filename instead of internal LUT name
+#
+#     im_array = np.asarray(image.convert('RGB'), dtype=np.float32) / 255
+#     is_non_default_domain = not np.array_equal(lut.domain, np.array([[0., 0., 0.], [1., 1., 1.]]))
+#     dom_scale = None
+#     if is_non_default_domain:
+#         dom_scale = lut.domain[1] - lut.domain[0]
+#         im_array = im_array * dom_scale + lut.domain[0]
+#     if log:
+#         im_array = im_array ** (1 / 2.2)
+#     im_array = lut.apply(im_array)
+#     if log:
+#         im_array = im_array ** (2.2)
+#     if is_non_default_domain:
+#         im_array = (im_array - lut.domain[0]) / dom_scale
+#     im_array = im_array * 255
+#     ret_image = Image.fromarray(np.uint8(im_array))
+#
+#     return ret_image
 
-    im_array = np.asarray(image.convert('RGB'), dtype=np.float32) / 255
+def apply_lut(image:Image, lut_file:str, colorspace:str, strength:int, clip_values:bool=True) -> Image:
+    """
+    Apply a LUT to an image.
+    :param image: Image to apply the LUT to.
+    :param lut_file: LUT file to apply.
+    :param colorspace: Colorspace to convert the image to before applying the LUT.
+    :param clip_values: Clip the values of the LUT to the domain of the LUT.
+    :param strength: Strength of the LUT.
+    :return: Image with the LUT applied.
+    """
+    log_colorspace = False
+    if colorspace == "log":
+        log_colorspace = True
+
+    from colour.io.luts.iridas_cube import read_LUT_IridasCube
+
+    lut = read_LUT_IridasCube(lut_file)
+    lut.name = lut_file
+
+    if clip_values:
+        if lut.domain[0].max() == lut.domain[0].min() and lut.domain[1].max() == lut.domain[1].min():
+            lut.table = np.clip(lut.table, lut.domain[0, 0], lut.domain[1, 0])
+        else:
+            if len(lut.table.shape) == 2:  # 3x1D
+                for dim in range(3):
+                    lut.table[:, dim] = np.clip(lut.table[:, dim], lut.domain[0, dim], lut.domain[1, dim])
+            else:  # 3D
+                for dim in range(3):
+                    lut.table[:, :, :, dim] = np.clip(lut.table[:, :, :, dim], lut.domain[0, dim], lut.domain[1, dim])
+
+    img = pil2tensor(image)
+    lut_img = img.numpy().copy()
     is_non_default_domain = not np.array_equal(lut.domain, np.array([[0., 0., 0.], [1., 1., 1.]]))
     dom_scale = None
     if is_non_default_domain:
         dom_scale = lut.domain[1] - lut.domain[0]
-        im_array = im_array * dom_scale + lut.domain[0]
-    if log:
-        im_array = im_array ** (1 / 2.2)
-    im_array = lut.apply(im_array)
-    if log:
-        im_array = im_array ** (2.2)
+        lut_img = lut_img * dom_scale + lut.domain[0]
+    if log_colorspace:
+        lut_img = lut_img ** (1/2.2)
+    lut_img = lut.apply(lut_img)
+    if log_colorspace:
+        lut_img = lut_img ** (2.2)
     if is_non_default_domain:
-        im_array = (im_array - lut.domain[0]) / dom_scale
-    im_array = im_array * 255
-    ret_image = Image.fromarray(np.uint8(im_array))
+        lut_img = (lut_img - lut.domain[0]) / dom_scale
+    lut_img = torch.from_numpy(lut_img)
+    if strength < 100:
+        strength /= 100
+        lut_img = strength * lut_img + (1 - strength) * img
 
-    return ret_image
-
+    return tensor2pil(lut_img)
 
 def color_adapter(image:Image, ref_image:Image) -> Image:
     image = pil2cv2(image)
@@ -1369,7 +1419,6 @@ def load_RMBG_model():
     return net
 
 
-
 def RMBG(image:Image) -> Image:
     rmbgmodel = load_RMBG_model()
     w, h = image.size
@@ -1388,6 +1437,39 @@ def RMBG(image:Image) -> Image:
     _mask = torch.from_numpy(np.squeeze(im_array).astype(np.float32))
     return tensor2pil(_mask)
 
+def guided_filter_alpha(image:torch.Tensor, mask:torch.Tensor, filter_radius:int) -> torch.Tensor:
+    sigma = 0.15
+    d = filter_radius + 1
+    mask = pil2tensor(tensor2pil(mask).convert('RGB'))
+    if not bool(d % 2):
+        d += 1
+    s = sigma / 10
+    i_dup = copy.deepcopy(image.cpu().numpy())
+    a_dup = copy.deepcopy(mask.cpu().numpy())
+    for index, image in enumerate(i_dup):
+        alpha_work = a_dup[index]
+        i_dup[index] = guidedFilter(image, alpha_work, d, s)
+    return torch.from_numpy(i_dup)
+
+#pymatting edge detail
+def mask_edge_detail(image:torch.Tensor, mask:torch.Tensor, detail_range:int=8, black_point:float=0.01, white_point:float=0.99) -> torch.Tensor:
+    from pymatting import fix_trimap, estimate_alpha_cf
+    d = detail_range * 5 + 1
+    mask = pil2tensor(tensor2pil(mask).convert('RGB'))
+    if not bool(d % 2):
+        d += 1
+    i_dup = copy.deepcopy(image.cpu().numpy().astype(np.float64))
+    a_dup = copy.deepcopy(mask.cpu().numpy().astype(np.float64))
+    for index, img in enumerate(i_dup):
+        trimap = a_dup[index][:, :, 0]  # convert to single channel
+        if detail_range > 0:
+            trimap = cv2.GaussianBlur(trimap, (d, d), 0)
+        trimap = fix_trimap(trimap, black_point, white_point)
+        alpha = estimate_alpha_cf(img, trimap, laplacian_kwargs={"epsilon": 1e-6},
+                                  cg_kwargs={"maxiter": 500})
+        a_dup[index] = np.stack([alpha, alpha, alpha], axis=-1)  # convert back to rgb
+    return torch.from_numpy(a_dup.astype(np.float32))
+
 class VITMatteModel:
     def __init__(self,model,processor):
         self.model = model
@@ -1400,27 +1482,47 @@ def load_VITMatte_model(model_name:str, local_files_only:bool=False) -> object:
     vitmatte = VITMatteModel(model, processor)
     return vitmatte
 
-def generate_VITMatte(image:Image, trimap:Image, local_files_only:bool=False) -> Image:
+def generate_VITMatte(image:Image, trimap:Image, local_files_only:bool=False, device:str="cpu", max_megapixels:float=2.0) -> Image:
     if image.mode != 'RGB':
         image = image.convert('RGB')
     if trimap.mode != 'L':
         trimap = trimap.convert('L')
-    max_size = 2048
+    max_megapixels *= 1048576
     width, height = image.size
-    if width * height > max_size * max_size:
-        image = image.resize((max_size, max_size), Image.BILINEAR)
-        trimap = trimap.resize((max_size, max_size), Image.BILINEAR)
+    ratio = width / height
+    target_width = math.sqrt(ratio * max_megapixels)
+    target_height = target_width / ratio
+    target_width = int(target_width)
+    target_height = int(target_height)
+    if width * height > max_megapixels:
+        image = image.resize((target_width, target_height), Image.BILINEAR)
+        trimap = trimap.resize((target_width, target_height), Image.BILINEAR)
+        log(f"vitmatte image size {width}x{height} too large, resize to {target_width}x{target_height} for processing.")
     model_name = "hustvl/vitmatte-small-composition-1k"
     if os.path.exists("/stable-diffusion-cache/models/vitmatte"):
         model_name = "/stable-diffusion-cache/models/vitmatte"
+    if device=="cpu":
+        device = torch.device('cpu')
+    else:
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+        else:
+            log("vitmatte device is set to cuda, but not available, using cpu instead.")
+            device = torch.device('cpu')
     vit_matte_model = load_VITMatte_model(model_name=model_name, local_files_only=local_files_only)
+    vit_matte_model.model.to(device)
+    log(f"vitmatte processing, image size = {image.width}x{image.height}, device = {device}.")
     inputs = vit_matte_model.processor(images=image, trimaps=trimap, return_tensors="pt")
     with torch.no_grad():
+        inputs = {k: v.to(device) for k, v in inputs.items()}
         predictions = vit_matte_model.model(**inputs).alphas
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
     mask = tensor2pil(predictions).convert('L')
     mask = mask.crop(
         (0, 0, image.width, image.height))  # remove padding that the prediction appends (works in 32px tiles)
-    if width * height > max_size * max_size:
+    if width * height > max_megapixels:
         mask = mask.resize((width, height), Image.BILINEAR)
     return mask
 
@@ -1465,38 +1567,6 @@ def get_a_person_mask_generator_model_path() -> str:
             os.makedirs(model_file_path, exist_ok=True)
             wget.download(model_url, model_file_path)
     return model_file_path
-
-def mask_edge_detail(image:torch.Tensor, mask:torch.Tensor, detail_range:int=8, black_point:float=0.01, white_point:float=0.99) -> torch.Tensor:
-    from pymatting import fix_trimap, estimate_alpha_cf
-    d = detail_range * 5 + 1
-    mask = pil2tensor(tensor2pil(mask).convert('RGB'))
-    if not bool(d % 2):
-        d += 1
-    i_dup = copy.deepcopy(image.cpu().numpy().astype(np.float64))
-    a_dup = copy.deepcopy(mask.cpu().numpy().astype(np.float64))
-    for index, img in enumerate(i_dup):
-        trimap = a_dup[index][:, :, 0]  # convert to single channel
-        if detail_range > 0:
-            trimap = cv2.GaussianBlur(trimap, (d, d), 0)
-        trimap = fix_trimap(trimap, black_point, white_point)
-        alpha = estimate_alpha_cf(img, trimap, laplacian_kwargs={"epsilon": 1e-6},
-                                  cg_kwargs={"maxiter": 500})
-        a_dup[index] = np.stack([alpha, alpha, alpha], axis=-1)  # convert back to rgb
-    return torch.from_numpy(a_dup.astype(np.float32))
-
-def guided_filter_alpha(image:torch.Tensor, mask:torch.Tensor, filter_radius:int) -> torch.Tensor:
-    sigma = 0.15
-    d = filter_radius + 1
-    mask = pil2tensor(tensor2pil(mask).convert('RGB'))
-    if not bool(d % 2):
-        d += 1
-    s = sigma / 10
-    i_dup = copy.deepcopy(image.cpu().numpy())
-    a_dup = copy.deepcopy(mask.cpu().numpy())
-    for index, image in enumerate(i_dup):
-        alpha_work = a_dup[index]
-        i_dup[index] = guidedFilter(image, alpha_work, d, s)
-    return torch.from_numpy(i_dup)
 
 def mask_fix(images:torch.Tensor, radius:int, fill_holes:int, white_threshold:float, extra_clip:float) -> torch.Tensor:
     d = radius * 2 + 1
