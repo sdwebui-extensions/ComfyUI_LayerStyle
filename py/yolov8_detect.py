@@ -7,6 +7,15 @@ from .imagefunc import *
 NODE_NAME = 'YoloV8Detect'
 
 model_path = os.path.join(folder_paths.models_dir, 'yolo')
+cache_path = '/stable-diffusion-cache/models/yolo'
+
+__file_list = glob.glob(model_path + '/*.pt') + glob.glob(cache_path + '/*.pt')
+# __file_list.extend(glob.glob(model_path + '/*.safetensors'))
+FILES_DICT = {}
+for i in range(len(__file_list)):
+    _, __filename = os.path.split(__file_list[i])
+    FILES_DICT[__filename] = __file_list[i]
+FILE_LIST = list(FILES_DICT.keys())
 
 class YoloV8Detect:
 
@@ -15,13 +24,6 @@ class YoloV8Detect:
 
     @classmethod
     def INPUT_TYPES(self):
-        __file_list = glob.glob(model_path + '/*.pt')
-        # __file_list.extend(glob.glob(model_path + '/*.safetensors'))
-        FILES_DICT = {}
-        for i in range(len(__file_list)):
-            _, __filename = os.path.split(__file_list[i])
-            FILES_DICT[__filename] = __file_list[i]
-        FILE_LIST = list(FILES_DICT.keys())
 
         mask_merge = ["all", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
         return {
@@ -48,7 +50,7 @@ class YoloV8Detect:
         ret_yolo_masks = []
 
         from  ultralytics import YOLO
-        yolo_model = YOLO(os.path.join(model_path, yolo_model))
+        yolo_model = YOLO(FILES_DICT[yolo_model])
 
         for i in image:
             i = torch.unsqueeze(i, 0)
