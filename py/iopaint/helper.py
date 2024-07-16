@@ -16,6 +16,8 @@ from torch.hub import download_url_to_file, get_dir
 import hashlib
 from .const import DEFAULT_MODEL_DIR
 
+cache_dir = '/stable-diffusion-cache/models/lama'
+
 
 def md5sum(filename):
     md5 = hashlib.md5()
@@ -41,6 +43,8 @@ def get_cache_path_by_url(url):
         os.makedirs(model_dir)
     filename = os.path.basename(parts.path)
     cached_file = os.path.join(model_dir, filename)
+    if not os.path.exists(cached_file) and os.path.exists(os.path.join(cache_dir, filename)):
+        cached_file = os.path.join(cache_dir, filename)
     return cached_file
 
 
