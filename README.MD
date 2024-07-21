@@ -20,7 +20,9 @@ Some JSON workflow files in the	```workflow``` directory, That's examples of how
 
 
 ## How to install 
+(Taking ComfyUI official portable package and Aki ComfyUI package as examples, please modify the dependency environment directory for other ComfyUI environments)
 
+### Install plugin
 * Recommended use ComfyUI Manager for installation.
 
 * Or open the cmd window in the plugin directory of ComfyUI, like ```ComfyUI\custom_nodes```，type    
@@ -29,13 +31,26 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 ```
 * Or download the zip file and extracted, copy the resulting folder to ```ComfyUI\custom_ Nodes```    
 
-* Install dependency packages, open the cmd window in the ComfyUI_LayerStyle plugin directory like    
-```ComfyUI\custom_ Nodes\ComfyUI_LayerStyle``` and enter the following command:    
+### Install dependency packages 
+* for ComfyUI official portable package, double-click the ```install_requirements.bat``` in the plugin directory, for Aki ComfyUI package double-click on the ```install_requirements_aki.bat``` in the plugin directory, and wait for the installation to complete.
+  
+* Or install dependency packages, open the cmd window in the ComfyUI_LayerStyle plugin directory like 
+```ComfyUI\custom_ Nodes\ComfyUI_LayerStyle``` and enter the following command,
+
+&emsp;&emsp;for ComfyUI official portable package, type:
 
 ```
-..\..\..\python_embeded\python.exe -m pip install -r requirements.txt
+..\..\..\python_embeded\python.exe -s -m pip install .\whl\docopt-0.6.2-py2.py3-none-any.whl
+..\..\..\python_embeded\python.exe -s -m pip install -r requirements.txt
+.\repair_dependency.bat
 ```
+&emsp;&emsp;for Aki ComfyUI package, type:
 
+```
+..\..\python\python.exe -s -m pip install .\whl\docopt-0.6.2-py2.py3-none-any.whl
+..\..\python\python.exe -s -m pip install -r requirements.txt
+.\repair_dependency.bat
+```
 * Restart ComfyUI.
 
 ## Common Issues
@@ -65,7 +80,7 @@ This error is caused by the low version of ```transformers``` package.
 ### insightface Loading very slow
 This error is caused by the low version of ```protobuf``` package. 
 
-## For the issues with the above three dependency packages, please double click ```repair_dependency.bat``` (for Official ComfyUI Protable) or  ```repair_dependency_aki.bat``` (for ComfyUI-aki-v1.x) in the plugin folder to automatically fix them.
+#### For the issues with the above three dependency packages, please double click ```repair_dependency.bat``` (for Official ComfyUI Protable) or  ```repair_dependency_aki.bat``` (for ComfyUI-aki-v1.x) in the plugin folder to automatically fix them.
 
 ### ValueError: Trimap did not contain foreground values (xxxx...)
 This error is caused by the mask area being too large or too small when using the ```PyMatting``` method to handle the mask edges.    
@@ -80,6 +95,10 @@ When this error has occurred, please check the network environment.
 ## Update
 <font size="4">**If the dependency package error after updating, please reinstall the relevant dependency packages. </font><br />    
 
+* Commit install_requirements.bat and install_requirements_aki.bat, One click solution to install dependency packages.
+* Commit [TransparentBackgroundUltra](#TransparentBackgroundUltra) node, it remove background based on transparent-background model.
+* Change the VitMatte model of the [Ultra](#Ultra) node to a local call. Please download [all files of vitmatte model](https://huggingface.co/hustvl/vitmatte-small-composition-1k/tree/main) to the ```ComfyUI/models/vitmatte``` folder.
+* [GetColorToneV2](#GetColorToneV2) node add the ```mask``` method to the color selection option, which can accurately obtain the main color and average color within the mask.
 * [ImageScaleByAspectRatioV2](#ImageScaleByAspectRatioV2) node add the "background_color" option.
 * [LUT Apply](#LUT) Add the "strength" option.
 * Commit [AutoAdjustV2](#AutoAdjustV2) node, add optional mask input and support for multiple automatic color adjustment modes.
@@ -814,13 +833,14 @@ V2 upgrade of GetColorTone. You can specify the dominant or average color to get
 
 The following changes have been made on the basis of GetColorTong:
 ![image](image/get_color_tone_v2_node.jpg)    
-* color_of: Provides three options, entire, background, and subject, to select the color of the entire picture, background, or body, respectively.
+* color_of: Provides 4 options, mask, entire, background, and subject, to select the color of the mask area, entire picture, background, or subject, respectively.
 * remove_background_method: There are two methods of background recognition: BiRefNet and RMBG V1.4.
 * invert_mask: Whether to reverse the mask.
 * mask_grow: Mask expansion. For subject, a larger value brings the obtained color closer to the color at the center of the body.
 
 Output:
 * image: Solid color picture output, the size is the same as the input picture.
+* mask: Mask output.
 
 ### <a id="table1">ExtendCanvas</a>
 Extend the canvas
@@ -1388,6 +1408,8 @@ Note: When running for the first time, you need to download the vitmate model fi
 After successfully downloading the model, you can use ```VITMatte(local)``` without accessing the network.
 * VitMatte's options: ```device``` set whether to use CUDA for vitimate operations, which is about 5 times faster than CPU. ```max_megapixels``` set the maximum image size for vitmate operation, and oversized images will be reduced in size. For 16G VRAM, it is recommended to set it to 3.
 
+Download the vitmatte model files [all files of vitmatte model](https://huggingface.co/hustvl/vitmatte-small-composition-1k/tree/main) to the ```ComfyUI/models/vitmatte``` folder.
+
 The following figure is an example of the difference in output between three methods.
 ![image](image/mask_edge_ultra_detail_v2_example.jpg)   
 
@@ -1468,6 +1490,28 @@ The code for the model part of this node comes from Viper's [ComfyUI-BiRefNet](h
 
 Node options:  
 ![image](image/birefnet_ultra_node.jpg)    
+* detail_method: Edge processing methods. provides VITMatte, VITMatte(local), PyMatting, GuidedFilter. If the model has been downloaded after the first use of VITMatte, you can use VITMatte (local) afterwards.
+* detail_erode: Mask the erosion range inward from the edge. the larger the value, the larger the range of inward repair.
+* detail_dilate: The edge of the mask expands outward. the larger the value, the wider the range of outward repair.
+* black_point: Edge black sampling threshold.
+* white_point: Edge white sampling threshold.
+* process_detail: Set to false here will skip edge processing to save runtime.
+* device: Set whether the VitMatte to use cuda.
+* max_megapixels: Set the maximum size for VitMate operations.
+
+### <a id="table1">TransparentBackgroundUltra</a>
+Using the transparent-background model to remove background has better recognition ability and speed, while also having ultra-high edge details.
+
+*Download [ckpt_base.pth](https://github.com/plemeri/transparent-background/releases/download/1.2.12/ckpt_base.pth), 
+[ckpt_fast.pth](https://github.com/plemeri/transparent-background/releases/download/1.2.12/ckpt_fast.pth) and 
+[ckpt_base_nightly.pth](https://github.com/plemeri/transparent-background/releases/download/1.2.12/ckpt_base_nightly.pth) 
+ 3 files to ```ComfyUI/models/transparent-background``` folder.
+
+![image](image/transparent_background_ultra_example.jpg)    
+
+Node Options:  
+![image](image/transparent_background_ultra_node.jpg)    
+* model: Select the model.
 * detail_method: Edge processing methods. provides VITMatte, VITMatte(local), PyMatting, GuidedFilter. If the model has been downloaded after the first use of VITMatte, you can use VITMatte (local) afterwards.
 * detail_erode: Mask the erosion range inward from the edge. the larger the value, the larger the range of inward repair.
 * detail_dilate: The edge of the mask expands outward. the larger the value, the wider the range of outward repair.
