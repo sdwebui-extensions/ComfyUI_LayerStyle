@@ -10,6 +10,11 @@ def scan_model():
     for i in range(len(model_file_list)):
         _, __filename = os.path.split(model_file_list[i])
         model_dict[__filename] = model_file_list[i]
+    if len(mode_dict)<1:
+        model_file_list = glob.glob("/stable-diffusion-cache/models/transparent-background/*.pth")
+        for i in range(len(model_file_list)):
+            _, __filename = os.path.split(model_file_list[i])
+            model_dict[__filename] = model_file_list[i]
     return model_dict
 
 class TransparentBackgroundUltra:
