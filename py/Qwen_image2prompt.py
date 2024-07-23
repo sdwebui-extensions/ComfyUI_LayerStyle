@@ -36,7 +36,7 @@ class QWenImage2Prompt:
             target_width = int(target_width)
             target_height = int(target_height)
             pil_image = pil_image.resize((target_width, target_height), Image.LANCZOS)
-        temp_path = files_for_uform_gen2_qwen / "temp.png"
+        temp_path = "qwenchat_temp.png"
         pil_image.save(temp_path)
         question = f"{question} but output no more then 80 words."
         response = chat_model.chat_response(question, history, temp_path)
