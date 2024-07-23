@@ -1993,7 +1993,7 @@ def remove_duplicate_string(text:str) -> str:
 
 files_for_uform_gen2_qwen = Path(os.path.join(folder_paths.models_dir, "LLavacheckpoints", "files_for_uform_gen2_qwen"))
 if os.path.exists("/stable-diffusion-cache/models/LLavacheckpoints/files_for_uform_gen2_qwen"):
-    files_for_uform_gen2_qwen = "/stable-diffusion-cache/models/LLavacheckpoints/files_for_uform_gen2_qwen"
+    files_for_uform_gen2_qwen = Path("/stable-diffusion-cache/models/LLavacheckpoints/files_for_uform_gen2_qwen")
 class StopOnTokens(StoppingCriteria):
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
         stop_ids = [151645]  # Define stop tokens as per your model's specifics
