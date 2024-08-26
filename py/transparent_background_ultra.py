@@ -1,4 +1,3 @@
-Remover = None
 from .imagefunc import *
 
 NODE_NAME = 'TransparentBackgroundUltra'
@@ -48,9 +47,9 @@ class TransparentBackgroundUltra:
   
     def transparent_background_ultra(self, image, model, detail_method, detail_erode, detail_dilate,
                        black_point, white_point, process_detail, device, max_megapixels):
-        global Remover
-        if Remover is None:
-            from transparent_background import Remover
+
+        from transparent_background import Remover
+
         ret_images = []
         ret_masks = []
         if detail_method == 'VITMatte(local)':
