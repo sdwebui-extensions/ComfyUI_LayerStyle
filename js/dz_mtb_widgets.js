@@ -402,16 +402,16 @@ const DZ_widgets = {
 
   init: async () => {
     log('Registering DZ.widgets')
-    try {
-      const res = await api.fetchApi('/DZ/debug')
-      const msg = await res.json()
-      if (!window.DZ) {
-        window.DZ = {}
-      }
-      window.DZ.DEBUG = msg.enabled
-    } catch (e) {
-      console.error('Error:', error)
-    }
+    // try {
+    //   const res = await api.fetchApi('/DZ/debug')
+    //   const msg = await res.json()
+    //   if (!window.DZ) {
+    //     window.DZ = {}
+    //   }
+    //   window.DZ.DEBUG = msg.enabled
+    // } catch (e) {
+    //   console.error('Error:', error)
+    // }
   },
 
   setup: () => {
@@ -428,26 +428,26 @@ const DZ_widgets = {
           fontFamily: 'monospace',
         },
       },
-      async onChange(value) {
-        if (value) {
-          console.log('Enabled DEBUG mode')
-        }
-        if (!window.DZ) {
-          window.DZ = {}
-        }
-        window.DZ.DEBUG = value
-        await api
-          .fetchApi('/DZ/debug', {
-            method: 'POST',
-            body: JSON.stringify({
-              enabled: value,
-            }),
-          })
-          .then((response) => {})
-          .catch((error) => {
-            console.error('Error:', error)
-          })
-      },
+      // async onChange(value) {
+      //   if (value) {
+      //     console.log('Enabled DEBUG mode')
+      //   }
+      //   if (!window.DZ) {
+      //     window.DZ = {}
+      //   }
+      //   window.DZ.DEBUG = value
+      //   await api
+      //     .fetchApi('/DZ/debug', {
+      //       method: 'POST',
+      //       body: JSON.stringify({
+      //         enabled: value,
+      //       }),
+      //     })
+      //     .then((response) => {})
+      //     .catch((error) => {
+      //       console.error('Error:', error)
+      //     })
+      // },
     })
   },
 
