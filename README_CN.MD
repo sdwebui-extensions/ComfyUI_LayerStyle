@@ -36,6 +36,7 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 
 ```
 ..\..\..\python_embeded\python.exe -s -m pip install .\whl\docopt-0.6.2-py2.py3-none-any.whl
+..\..\..\python_embeded\python.exe -s -m pip install .\whl\hydra_core-1.3.2-py3-none-any.whl
 ..\..\..\python_embeded\python.exe -s -m pip install -r requirements.txt
 .\repair_dependency.bat
 ```
@@ -43,6 +44,7 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 
 ```
 ..\..\python\python.exe -s -m pip install .\whl\docopt-0.6.2-py2.py3-none-any.whl
+..\..\python\python.exe -s -m pip install .\whl\hydra_core-1.3.2-py3-none-any.whl
 ..\..\python\python.exe -s -m pip install -r requirements.txt
 .\repair_dependency.bat
 ```
@@ -74,13 +76,17 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 ### NameError: name 'guidedFilter' is not defined
 问题原因同上。
 
-###  Cannot import name 'VitMatteImageProcessor' from 'transformers' 
+### Cannot import name 'VitMatteImageProcessor' from 'transformers' 
 这个错误是由于```transformers``` 版本过低造成的
 
 ### insightface 加载缓慢
 这是由于```protobuf``` 版本过低造成的。
 
-#### 以上三个依赖包的问题，请双击运行插件目录下的```repair_dependency.bat```(官方便携包)或者```repair_dependency_aki.bat```(秋叶整合包)自动修复。 
+#### 以上3个依赖包的问题，请双击运行插件目录下的```repair_dependency.bat```(官方便携包)或者```repair_dependency_aki.bat```(秋叶整合包)自动修复。 
+
+### onnxruntime::python::CreateExecutionProviderInstance CUDA_PATH is set but CUDA wasn't able to be loaded. Please install the correct version of CUDA and cuDNN as mentioned in the GPU requirements page 
+解决方法：
+请重新安装```onnxruntime```依赖包
 
 ### ValueError: Trimap did not contain foreground values (xxxx...)
 这个错误是由于使用PyMatting方法处理遮罩边缘时，遮罩面积过大或者过小引起的。     
@@ -101,8 +107,21 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 
 
 ## 更新说明
-<font size="4">**如果本插件更新后出现依赖包错误，请重新安装相关依赖包。
+<font size="4">**如果本插件更新后出现依赖包错误，请双击运行插件目录下的```install_requirements.bat```(官方便携包)，或 ```install_requirements_aki.bat```(秋叶整合包) 重新安装依赖包。
 
+* 添加 [BiRefNetUltraV2](#BiRefNetUltraV2) 和 [LoadBiRefNetModel](#LoadBiRefNetModel) 节点，支持使用最新的BiRefNet模型。
+从[百度网盘](https://pan.baidu.com/s/12z3qUuqag3nqpN2NJ5pSzg?pwd=ek65) 或 [GoogleDrive](https://drive.google.com/drive/folders/1s2Xe0cjq-2ctnJBR24563yMSCOu4CcxM) 下载 ```BiRefNet-general-epoch_244.pth``` 到 ComfyUI/Models/BiRefNet/pth 文件夹。也可以下载更多的BiRefNet模型放到这里。
+* [ExtendCanvasV2](#ExtendCanvasV2) 节点支持负值输入，负值将被裁剪。
+* 节点默认标题颜色改为蓝绿色，LayerStyle, LayerColor, LayerMask, LayerUtility 和 LayerFilter 的节点分别用不同的颜色区分。
+* 合并 [heshengtao](https://github.com/heshengtao) 提交的PR, 添加[TextImageV2](#TextImageV2)节点，修改图片文字节点的缩放，字体间隔跟随缩放，坐标不再以文字左上角，而是整行文字的中心点。感谢作者的贡献。
+* ObjectDectector节点组增加sort bbox功能， 可按从左到右、从上到下、从大到小排序，选择物体更直观方便。昨天发布的节点已放弃，请手动更换为新版节点(对不起)。
+* 添加 [SAM2Ultra](#SAM2Ultra), [SAM2VideoUltra](#SAM2VideoUltra), [ObjectDetectorFL2](#ObjectDetectorFL2), [ObjectDetectorYOLOWorld](#ObjectDetectorYOLOWorld), [ObjectDetectorYOLO8](#ObjectDetectorYOLO8), [ObjectDetectorMask](#ObjectDetectorMask) 和 [BBoxJoin](#BBoxJoin)节点。
+请从[百度网盘](https://pan.baidu.com/s/1xaQYBA6ktxvAxm310HXweQ?pwd=auki) 或者 [huggingface.co/Kijai/sam2-safetensors](https://huggingface.co/Kijai/sam2-safetensors/tree/main)下载全部模型文件并复制到```ComfyUI/models/sam2```文件夹; 
+从 [百度网盘](https://pan.baidu.com/s/1QpjajeTA37vEAU2OQnbDcQ?pwd=nqsk) 或[GoogleDrive](https://drive.google.com/drive/folders/1nrsfq4S-yk9ewJgwrhXAoNVqIFLZ1at7?usp=sharing)下载模型文件并复制到```ComfyUI/models/yolo-world```文件夹。 
+本次更新引入了新的依赖，请重新安装依赖包。 
+* 添加 [RandomGenerator](#RandomGenerator) 节点，用于生成指定范围内的随机数，有int，float，bool输出，支持按图片批量生成不同的随机数。
+* 添加 [EVF-SAMUltra](#EVFSAMUltra) 节点，是[EVF-SAM](https://github.com/hustvl/EVF-SAM)在ComfyUI中的实现。请从[百度网盘](https://pan.baidu.com/s/1EvaxgKcCxUpMbYKzLnEx9w?pwd=69bn) 或者 [huggingface/EVF-SAM2](https://huggingface.co/YxZhang/evf-sam2/tree/main), [huggingface/EVF-SAM](https://huggingface.co/YxZhang/evf-sam/tree/main) 下载全部模型文件并复制到```ComfyUI/models/EVF-SAM```文件夹(请将模型保存在各自子目录中)。
+由于引入了新的依赖，插件升级后请重新安装依赖包。
 * 添加 [ImageTaggerSave](#ImageTaggerSave) 和 [ImageAutoCropV3](#ImageAutoCropV3) 节点，用于实现训练集自动裁切打标工作流(工作流```image_tagger_save_example.json```在workflow目录中)。
 * 添加 [CheckMaskV2](#CheckMaskV2) 节点，增加了```simple```方法以更快速检测遮罩。
 * 添加 [ImageReel ](#ImageReel) 和 [ImageReelComposit](#ImageReelComposit) 节点，可将多张图片显示在一起。
@@ -912,12 +931,12 @@ GetColorTone的V2升级版。可以指定获取主体或背景的主色或平均
 * bottom: 底部扩展值。
 * left: 左侧扩展值。
 * right: 右侧扩展值。
-* color; 画布颜色
+* color: 画布颜色
 
 ### <a id="table1">ExtendCanvasV2</a>
 ExtendCanvas的V2升级版。
 
-在ExtendCanvas基础上修改了color为字符串类型，支持外接```ColorPicker```输入。
+在ExtendCanvas基础上修改了color为字符串类型，支持外接```ColorPicker```输入。支持负值输入，负值将被裁剪。
 ![image](image/extend_canvas_v2_node.jpg)    
 
 
@@ -1072,6 +1091,9 @@ GradientImage的V2升级版。
 <sup>*</sup>仅限输入image和mask, 如果强制接入其他类型输入，将导致节点错误。
 <sup>**</sup>font文件夹在```resource_dir.ini```中定义，这个文件位于插件根目录下, 默认名字是```resource_dir.ini.example```, 初次使用这个文件需将文件后缀改为.ini。用文本编辑软件打开，找到“FONT_dir=”开头的这一行，编辑“=”之后为自定义文件夹路径名。这个文件夹里面所有的.ttf和.otf文件将在ComfyUI初始化时被收集并显示在节点的列表中。如果ini中设定的文件夹无效，将启用插件自带的font文件夹。
 
+### <a id="table1">TextImageV2</a>
+![image](image/text_image_v2_node.jpg)    
+本节点合并自 [heshengtao](https://github.com/heshengtao) 提交的PR, 在TextImage节点基础上，修改图片文字节点的缩放，字体间隔跟随缩放，坐标不再以文字左上角，而是整行文字的中心点。感谢作者的贡献。
 
 ### <a id="table1">LaMa</a>
 ![image](image/lama_example.jpg)    
@@ -1254,6 +1276,23 @@ box_preview: 裁切位置预览。
 ### <a id="table1">Boolean</a>
 ![image](image/boolean_node.jpg)    
 输出一个布尔值。
+
+### <a id="table1">RandomGenerator</a>
+用于生成指定范围内的随机数，有int，float，bool输出，支持批量和列表，支持按图片批量生成一组不同的随机数列表。
+![image](image/random_generator_example.jpg)    
+
+节点选项说明:
+![image](image/random_generator_node.jpg)  
+* image: 可选输入，按照图片批量生成数量相符的随机数列表。
+* min_value：最小值。随机数将从最小值到最大值之间随机取值。
+* max_value：最大值。随机数将从最小值到最大值之间随机取值。
+* float_decimal_places：浮点数精度。
+* fix_seed:是否固定随机数种子。如果此选项固定，生成的随机数将始终相同。
+
+输出:
+int: 整数随机数。
+float: 浮点数随机数。
+bool: 布尔随机数。
 
 ### <a id="table1">NumberCalculator</a>
 ![image](image/number_calculator_node.jpg)    
@@ -1527,7 +1566,7 @@ mask为可选输入项，如果这里输入遮罩，将作用于输出结果。
 * threshold: SAM阈值。
 * detail_range: 边缘细节范围。
 * black_point: 边缘黑色采样阈值。
-* white_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
 * process_detail: 此处设为False将跳过边缘处理以节省运行时间。
 * prompt: SAM的prompt输入。
 
@@ -1542,6 +1581,145 @@ SegmentAnythingUltra的V2升级版，增加了VITMatte边缘处理方法。
 * detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
 * device: 设置是否使用cuda。
 * max_megapixels: 设置vitmatte运算的最大尺寸。
+
+### <a id="table1">SAM2Ultra</a>
+本节点是[kijai/ComfyUI-segment-anything-2](https://github.com/kijai/ComfyUI-segment-anything-2)的改造版本。感谢[kijai](https://github.com/kijai)为ComfyUI社区做出的巨大贡献。    
+SAM2 Ultra 节点仅支持单张图片，如果需要处理多张图片，请先将image batch 转换为 image list。    
+*请从[百度网盘](https://pan.baidu.com/s/1xaQYBA6ktxvAxm310HXweQ?pwd=auki) 或者 [huggingface.co/Kijai/sam2-safetensors](https://huggingface.co/Kijai/sam2-safetensors/tree/main)下载全部模型文件并复制到```ComfyUI/models/sam2```文件夹。
+
+![image](image/sam2_example.jpg)    
+
+节点选项说明:  
+![image](image/sam2_ultra_node.jpg)    
+
+* image: 图片输入。
+* bboxes: 识别框数据输入。
+* sam2_model: 选择SAM2模型。
+* presicion: 模型精度，可选择fp16, bf16 和 fp32。
+* bbox_select: 选择输入的框数据。有3个选项："all"为全部选择，"first"为选择置信度最高的框，"by_index"可以指定框的索引。
+* select_index: 当bbox_select为"by_index"时，此选项有效。0为第一张。可以输入多个值，中间用任意非数字字符分隔，包括不仅限于逗号，句号，分号，空格或者字母，甚至中文。
+* cache_model: 是否缓存模型。缓存模型后将节省模型加载的时间。
+* detail_method: 边缘处理方法。提供了VITMatte, VITMatte(local), PyMatting, GuidedFilter。如果首次使用VITMatte后模型已经下载，之后可以使用VITMatte(local)。
+* detail_erode: 遮罩边缘向内侵蚀范围。数值越大，向内修复的范围越大。
+* detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
+* black_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
+* process_detail: 此处设为False将跳过边缘处理以节省运行时间。
+* device: 设置是否使用cuda。
+* max_megapixels: 设置vitmatte运算的最大尺寸。
+
+### <a id="table1">SAM2VideoUltra</a>
+SAM2 Video Ultra 节点支持处理多张图片或视频序列帧。请在序列的第一帧定义识别框数据以保证正确识别。
+
+https://github.com/user-attachments/assets/4726b8bf-9b98-4630-8f54-cb7ed7a3d2c5
+
+https://github.com/user-attachments/assets/b2a45c96-4be1-4470-8ceb-addaf301b0cb
+
+节点选项说明:  
+![image](image/sam2_video_ultra_node.jpg)    
+
+* image: 图片输入。
+* bboxes: 可选输入，识别框数据输入。bboxes 和 first_frame_mask 二者必须输入其中之一。如果有first_frame_mask输入，bboxes将被忽略。
+* first_frame_mask: 可选输入遮罩，这里的遮罩将作为首帧识别对象。bboxes 和 first_frame_mask 二者必须输入其中之一。如果有first_frame_mask输入，bboxes将被忽略。
+* pre_mask: 可选输入遮罩，这里的遮罩将作为传播关注范围限制，有助于提高识别准确度。
+* sam2_model: 选择SAM2模型。
+* presicion: 模型精度，可选择fp16, bf16。
+* cache_model: 是否缓存模型。缓存模型后将节省模型加载的时间。
+* individual_object: 当设置为 True时，将专注于识别单一对象。设置为False时，将尝试为多个对象生成识别框。
+* mask_preview_color: 在预览输出中显示非遮罩区域的颜色。
+* detail_method: 边缘处理方法。仅VITMatte可用。
+* detail_erode: 遮罩边缘向内侵蚀范围。数值越大，向内修复的范围越大。
+* detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
+* black_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
+* process_detail: 此处设为False将跳过边缘处理以节省运行时间。
+* device: 本节点限制仅使用cuda。
+* max_megapixels: 设置vitmatte运算的最大尺寸。更大的尺寸将获得更精细的遮罩边缘，但会导致运算速度明显下降。
+
+### <a id="table1">ObjectDetectorFL2</a>
+使用Florence2模型识别图片中的对象，并输出识别框数据。    
+*请从 [百度网盘](https://pan.baidu.com/s/1hzw9-QiU1vB8pMbBgofZIA?pwd=mfl3)下载模型文件并复制到```ComfyUI/models/florence2```文件夹。
+
+节点选项说明:  
+![image](image/object_detector_fl2_node.jpg)    
+
+* image: 图片输入。
+* florence2_model: Florence2模型。从[Florence2模型加载器](#LoadFlorence2Model)输入。
+* prompt: 描述需要识别的对象。
+* sort_method: 选择框排序方法， 有3个选项："left_to_right"为从左到右排序，"top_to_bottom"为从上到下排序，"big_to_small"为从大到小排序。
+* bbox_select: 选择输入的框数据。有3个选项："all"为全部选择，"first"为选择置信度最高的框，"by_index"可以指定框的索引。
+* select_index: 当bbox_select为"by_index"时，此选项有效。0为第一张。可以输入多个值，中间用任意非数字字符分隔，包括不仅限于逗号，句号，分号，空格或者字母，甚至中文。
+
+### <a id="table1">ObjectDetectorYOLOWorld</a>
+使用YOLO World模型识别图片中的对象，并输出识别框数据。    
+*请从 [百度网盘](https://pan.baidu.com/s/1QpjajeTA37vEAU2OQnbDcQ?pwd=nqsk) 或[GoogleDrive](https://drive.google.com/drive/folders/1nrsfq4S-yk9ewJgwrhXAoNVqIFLZ1at7?usp=sharing)下载模型文件并复制到```ComfyUI/models/yolo-world```文件夹。
+
+节点选项说明:  
+![image](image/object_detector_yolo_world_node.jpg)    
+
+* image: 图片输入。
+* confidence_threshold: 置信度阈值。
+* nms_iou_threshold: 非极大值抑制阈值。
+* prompt: 描述需要识别的对象。
+* sort_method: 选择框排序方法， 有3个选项："left_to_right"为从左到右排序，"top_to_bottom"为从上到下排序，"big_to_small"为从大到小排序。
+* bbox_select: 选择输入的框数据。有3个选项："all"为全部选择，"first"为选择置信度最高的框，"by_index"可以指定框的索引。
+* select_index: 当bbox_select为"by_index"时，此选项有效。0为第一张。可以输入多个值，中间用任意非数字字符分隔，包括不仅限于逗号，句号，分号，空格或者字母，甚至中文。
+
+### <a id="table1">ObjectDetectorYOLO8</a>
+使用YOLO 8模型识别图片中的对象，并输出识别框数据。   
+*请在 [GoogleDrive](https://drive.google.com/drive/folders/1I5TISO2G1ArSkKJu1O9b4Uvj3DVgn5d2) 或者 [百度网盘](https://pan.baidu.com/s/1pEY6sjABQaPs6QtpK0q6XA?pwd=grqe) 下载模型文件并放到 ```ComfyUI/models/yolo``` 文件夹。
+
+节点选项说明:  
+![image](image/object_detector_yolo8_node.jpg)
+* image: 图片输入。
+* yolo_model: 选择yolo模型。
+* sort_method: 选择框排序方法， 有3个选项："left_to_right"为从左到右排序，"top_to_bottom"为从上到下排序，"big_to_small"为从大到小排序。
+* bbox_select: 选择输入的框数据。有3个选项："all"为全部选择，"first"为选择置信度最高的框，"by_index"可以指定框的索引。
+* select_index: 当bbox_select为"by_index"时，此选项有效。0为第一张。可以输入多个值，中间用任意非数字字符分隔，包括不仅限于逗号，句号，分号，空格或者字母，甚至中文。
+
+### <a id="table1">ObjectDetectorMask</a>
+使用遮罩作为识别框数据。遮罩上所有被白色区域包围的区域，将被识别为一个对象。多个封闭区域将各自识别。   
+
+节点选项说明:  
+![image](image/object_detector_mask_node.jpg)
+* object_mask: 遮罩输入。
+* sort_method: 选择框排序方法， 有3个选项："left_to_right"为从左到右排序，"top_to_bottom"为从上到下排序，"big_to_small"为从大到小排序。
+* bbox_select: 选择输入的框数据。有3个选项："all"为全部选择，"first"为选择置信度最高的框，"by_index"可以指定框的索引。
+* select_index: 当bbox_select为"by_index"时，此选项有效。0为第一张。可以输入多个值，中间用任意非数字字符分隔，包括不仅限于逗号，句号，分号，空格或者字母，甚至中文。
+
+### <a id="table1">BBoxJoin</a>
+合并识别框数据。   
+
+节点选项说明:  
+![image](image/bbox_join_node.jpg)
+* bboxes_1: 必选输入。第一组识别框。
+* bboxes_2: 可选输入。第二组识别框。
+* bboxes_3: 可选输入。第三组识别框。
+* bboxes_4: 可选输入。第四组识别框。
+
+### <a id="table1">EVF-SAMUltra</a>
+本节点是[EVF-SAM](https://github.com/hustvl/EVF-SAM)在ComfyUI中的实现。    
+*请从[百度网盘](https://pan.baidu.com/s/1EvaxgKcCxUpMbYKzLnEx9w?pwd=69bn) 或者 [huggingface/EVF-SAM2](https://huggingface.co/YxZhang/evf-sam2/tree/main), [huggingface/EVF-SAM](https://huggingface.co/YxZhang/evf-sam/tree/main) 下载全部模型文件并复制到```ComfyUI/models/EVF-SAM```文件夹(请将模型保存在各自子目录中)。
+
+![image](image/evf_sam_ultra_example.jpg)    
+
+节点选项说明:  
+![image](image/evf_sam_ultra_node.jpg)    
+
+* image: 图片输入。
+* model: 选择模型。目前有 evf-sam2 和 evf-sam 可选。
+* presicion: 模型精度，可选择fp16, bf16 和 fp32。
+* load_in_bit: 按位精度加载模型。可选择full, 8 和 4。
+* pormpt: 用于分割的提示词。
+* detail_method: 边缘处理方法。提供了VITMatte, VITMatte(local), PyMatting, GuidedFilter。如果首次使用VITMatte后模型已经下载，之后可以使用VITMatte(local)。
+* detail_erode: 遮罩边缘向内侵蚀范围。数值越大，向内修复的范围越大。
+* detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
+* black_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
+* process_detail: 此处设为False将跳过边缘处理以节省运行时间。
+* device: 设置是否使用cuda。
+* max_megapixels: 设置vitmatte运算的最大尺寸。
+
 
 ### <a id="table1">Florence2Ultra</a>
 使用 Florence2 模型的分割功能，同时具有超高的边缘细节。
@@ -1560,7 +1738,7 @@ SegmentAnythingUltra的V2升级版，增加了VITMatte边缘处理方法。
 * detail_erode: 遮罩边缘向内侵蚀范围。数值越大，向内修复的范围越大。
 * detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
 * black_point: 边缘黑色采样阈值。
-* white_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
 * process_detail: 此处设为False将跳过边缘处理以节省运行时间。
 * device: 设置是否使用cuda。
 * max_megapixels: 设置vitmatte运算的最大尺寸。
@@ -1582,7 +1760,7 @@ Florence2 模型加载器。
 ![image](image/rembg_ultra_node.jpg)    
 * detail_range: 边缘细节范围。
 * black_point: 边缘黑色采样阈值。
-* white_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
 * process_detail: 此处设为False将跳过边缘处理以节省运行时间。
 
 ### <a id="table1">RmBgUltraV2</a>
@@ -1610,10 +1788,41 @@ RemBgUltra的V2升级版，增加了VITMatte边缘处理方法。
 * detail_erode: 遮罩边缘向内侵蚀范围。数值越大，向内修复的范围越大。
 * detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
 * black_point: 边缘黑色采样阈值。
-* white_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
 * process_detail: 此处设为False将跳过边缘处理以节省运行时间。
 * device: 设置是否使用cuda。
 * max_megapixels: 设置vitmatte运算的最大尺寸。
+
+
+### <a id="table1">BiRefNetUltraV2</a>
+本节点支持使用最新的BiRefNet模型。    
+*从[百度网盘](https://pan.baidu.com/s/12z3qUuqag3nqpN2NJ5pSzg?pwd=ek65) 或 [GoogleDrive](https://drive.google.com/drive/folders/1s2Xe0cjq-2ctnJBR24563yMSCOu4CcxM) 下载 ```BiRefNet-general-epoch_244.pth``` 到 ```ComfyUI/Models/BiRefNet/pth``` 文件夹。也可以下载更多的BiRefNet模型放到这里。
+
+![image](image/birefnet_ultra_v2_example.jpg)    
+
+节点选项说明:  
+![image](image/birefnet_ultra_v2_node.jpg)  
+
+* image: 图片输入。
+* birefnet_model: BiRefNet模型输入，模型从LoadBiRefNetModel节点输出。
+* detail_method: 边缘处理方法。提供了VITMatte, VITMatte(local), PyMatting, GuidedFilter。如果首次使用VITMatte后模型已经下载，之后可以使用VITMatte(local)。
+* detail_erode: 遮罩边缘向内侵蚀范围。数值越大，向内修复的范围越大。
+* detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
+* black_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
+* process_detail: 由于BiRefNet的边缘处理已经非常不错，此处默认设为False。
+* device: 设置是否使用cuda。
+* max_megapixels: 设置vitmatte运算的最大尺寸。
+
+
+### <a id="table1">LoadBiRefNetModel</a>
+加载BiRefNet模型。 
+
+
+节点选项说明:  
+![image](image/load_birefnet_model_node.jpg)  
+
+* model: 选择模型。列出 ```CoomfyUI/models/BiRefNet/pth``` 文件夹下的文件供选择。
 
 ### <a id="table1">TransparentBackgroundUltra</a>
 使用transparent-background模型去除背景，有更好的识别能力和识别速度，同时具有超高的边缘细节。
@@ -1629,7 +1838,7 @@ RemBgUltra的V2升级版，增加了VITMatte边缘处理方法。
 * detail_erode: 遮罩边缘向内侵蚀范围。数值越大，向内修复的范围越大。
 * detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
 * black_point: 边缘黑色采样阈值。
-* white_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
 * process_detail: 此处设为False将跳过边缘处理以节省运行时间。
 * device: 设置是否使用cuda。
 * max_megapixels: 设置vitmatte运算的最大尺寸。
@@ -1652,7 +1861,7 @@ RemBgUltra的V2升级版，增加了VITMatte边缘处理方法。
 * confidence: 识别阈值，更低的值将输出更多的遮罩范围。
 * detail_range: 边缘细节范围。
 * black_point: 边缘黑色采样阈值。
-* white_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
 * process_detail: 此处设为False将跳过边缘处理以节省运行时间。
 
 ### <a id="table1">PersonMaskUltraV2</a>
@@ -1694,7 +1903,7 @@ PersonMaskUltra的V2升级版，增加了VITMatte边缘处理方法。
 * detail_erode: 遮罩边缘向内侵蚀范围。数值越大，向内修复的范围越大。
 * detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
 * black_point: 边缘黑色采样阈值。
-* white_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
 * process_detail: 此处设为False将跳过边缘处理以节省运行时间。
 * device: 设置是否使用cuda。
 * max_megapixels: 设置vitmatte运算的最大尺寸。
@@ -1717,7 +1926,7 @@ PersonMaskUltra的V2升级版，增加了VITMatte边缘处理方法。
 * detail_erode: 遮罩边缘向内侵蚀范围。数值越大，向内修复的范围越大。
 * detail_dilate: 遮罩边缘向外扩张范围。数值越大，向外修复的范围越大。
 * black_point: 边缘黑色采样阈值。
-* white_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
 * process_detail: 此处设为False将跳过边缘处理以节省运行时间。
 * device: 设置是否使用cuda。
 * max_megapixels: 设置vitmatte运算的最大尺寸。
@@ -1810,7 +2019,7 @@ PersonMaskUltra的V2升级版，增加了VITMatte边缘处理方法。
 * fix_threshold: 修补遮罩的阈值。
 * detail_range: 边缘细节范围。
 * black_point: 边缘黑色采样阈值。
-* white_point: 边缘黑色采样阈值。
+* white_point: 边缘白色采样阈值。
 
 ### <a id="table1">MaskEdgeUltraDetailV2</a>
 MaskEdgeUltraDetail的V2升级版，增加了VITMatte边缘处理方法，此方法适合处理半透明区域。 

@@ -12,7 +12,7 @@ colormap = ['blue', 'orange', 'green', 'purple', 'brown', 'pink', 'gray', 'olive
 
 device = comfy.model_management.get_torch_device()
 
-model_repos = {
+fl2_model_repos = {
     "base": "microsoft/Florence-2-base",
     "base-ft": "microsoft/Florence-2-base-ft",
     "large": "microsoft/Florence-2-large",
@@ -21,8 +21,10 @@ model_repos = {
     "SD3-Captioner": "gokaygokay/Florence-2-SD3-Captioner",
     "base-PromptGen": "MiaoshouAI/Florence-2-base-PromptGen",
     "CogFlorence-2-Large-Freeze": "thwri/CogFlorence-2-Large-Freeze",
-    "CogFlorence-2.1-Large": "thwri/CogFlorence-2.1-Large"
+    "CogFlorence-2.1-Large": "thwri/CogFlorence-2.1-Large",
+    "base-PromptGen-v1.5":"MiaoshouAI/Florence-2-base-PromptGen-v1.5"
 }
+
 
 def fixed_get_imports(filename) -> list[str]:
     """Workaround for FlashAttention"""
@@ -41,10 +43,10 @@ def load_model(version):
 
     if not os.path.exists(model_path):
         log(f"Downloading Florence2 {version} model...")
-        repo_id = model_repos[version]
         if os.path.exists(os.path.join("/stable-diffusion-cache/models/LLM", repo_id.split('/')[-1])):
             model_path = os.path.join("/stable-diffusion-cache/models/LLM", repo_id.split('/')[-1])
         else:
+            repo_id = fl2_model_repos[version]
             from huggingface_hub import snapshot_download
             snapshot_download(repo_id=repo_id, local_dir=model_path, ignore_patterns=["*.md", "*.txt"])
 
@@ -62,6 +64,7 @@ def load_model(version):
             log(f"Error loading model or tokenizer: {str(e)}")
 
     return (model.to(device), processor)
+
 
 def fig_to_pil(fig):
     buf = io.BytesIO()
@@ -370,7 +373,7 @@ class LS_LoadFlorence2Model:
 
     @classmethod
     def INPUT_TYPES(s):
-        model_list = list(model_repos.keys())
+        model_list = list(fl2_model_repos.keys())
         return {
             "required": {
                 "version": (model_list,{"default": model_list[0]}),

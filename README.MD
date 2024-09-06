@@ -41,6 +41,7 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 
 ```
 ..\..\..\python_embeded\python.exe -s -m pip install .\whl\docopt-0.6.2-py2.py3-none-any.whl
+..\..\..\python_embeded\python.exe -s -m pip install .\whl\hydra_core-1.3.2-py3-none-any.whl
 ..\..\..\python_embeded\python.exe -s -m pip install -r requirements.txt
 .\repair_dependency.bat
 ```
@@ -48,6 +49,7 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 
 ```
 ..\..\python\python.exe -s -m pip install .\whl\docopt-0.6.2-py2.py3-none-any.whl
+..\..\python\python.exe -s -m pip install .\whl\hydra_core-1.3.2-py3-none-any.whl
 ..\..\python\python.exe -s -m pip install -r requirements.txt
 .\repair_dependency.bat
 ```
@@ -89,6 +91,10 @@ This error is caused by the low version of ```protobuf``` package.
 
 #### For the issues with the above three dependency packages, please double click ```repair_dependency.bat``` (for Official ComfyUI Protable) or  ```repair_dependency_aki.bat``` (for ComfyUI-aki-v1.x) in the plugin folder to automatically fix them.
 
+### onnxruntime::python::CreateExecutionProviderInstance CUDA_PATH is set but CUDA wasn't able to be loaded. Please install the correct version of CUDA and cuDNN as mentioned in the GPU requirements page 
+Solution:
+Reinstall the  ```onnxruntime``` dependency package.
+
 ### ValueError: Trimap did not contain foreground values (xxxx...)
 This error is caused by the mask area being too large or too small when using the ```PyMatting``` method to handle the mask edges.    
 
@@ -98,10 +104,22 @@ Solution:
 ### Requests.exceptions.ProxyError: HTTPSConnectionPool(xxxx...)
 When this error has occurred, please check the network environment.
 
-
 ## Update
-<font size="4">**If the dependency package error after updating, please reinstall the relevant dependency packages. </font><br />    
+<font size="4">**If the dependency package error after updating,  please double clicking ```repair_dependency.bat``` (for Official ComfyUI Protable) or  ```repair_dependency_aki.bat``` (for ComfyUI-aki-v1.x) in the plugin folder to reinstall the dependency packages. </font><br />    
 
+
+* Commit [BiRefNetUltraV2](#BiRefNetUltraV2) and [LoadBiRefNetModel](#LoadBiRefNetModel) nodes, that support the use of the latest BiRefNet model.
+Download model file from [BaiduNetdisk](https://pan.baidu.com/s/12z3qUuqag3nqpN2NJ5pSzg?pwd=ek65) or [GoogleDrive](https://drive.google.com/drive/folders/1s2Xe0cjq-2ctnJBR24563yMSCOu4CcxM) named ```BiRefNet-general-epoch_244.pth``` to  ```ComfyUI/Models/BiRefNet/pth``` folder. You can also download more BiRefNet models and put them here.
+* [ExtendCanvasV2](#ExtendCanvasV2) node support negative value input, it means image will be cropped.
+* The default title color of nodes is changed to blue-green, and nodes in LayerStyle, LayerColor, LayerMask, LayerUtility, and LayerFilter are distinguished by different colors.
+* The Object Detector nodes added sort bbox option, which allows sorting from left to right, top to bottom, and large to small, making object selection more intuitive and convenient. The nodes released yesterday has been abandoned, please manually replace it with the new version node (sorry).
+* Commit [SAM2Ultra](#SAM2Ultra), [SAM2VideoUltra](#SAM2VideoUltra), [ObjectDetectorFL2](#ObjectDetectorFL2), [ObjectDetectorYOLOWorld](#ObjectDetectorYOLOWorld), [ObjectDetectorYOLO8](#ObjectDetectorYOLO8), [ObjectDetectorMask](#ObjectDetectorMask) and [BBoxJoin](#BBoxJoin) nodes. 
+Download models from [BaiduNetdisk](https://pan.baidu.com/s/1xaQYBA6ktxvAxm310HXweQ?pwd=auki) or [huggingface.co/Kijai/sam2-safetensors](https://huggingface.co/Kijai/sam2-safetensors/tree/main) and copy to ```ComfyUI/models/sam2``` folder,
+Download models from [BaiduNetdisk](https://pan.baidu.com/s/1QpjajeTA37vEAU2OQnbDcQ?pwd=nqsk) or [GoogleDrive](https://drive.google.com/drive/folders/1nrsfq4S-yk9ewJgwrhXAoNVqIFLZ1at7?usp=sharing) and copy to ```ComfyUI/models/yolo-world``` folder.
+This update introduces new dependencies, please reinstall the dependency package.
+* Commit [RandomGenerator](#RandomGenerator) node, Used to generate random numbers within a specified range, with outputs of int, float, and boolean, supporting batch generation of different random numbers by image batch.
+* Commit [EVF-SAMUltra](#EVFSAMUltra) node, it is implementation of [EVF-SAM](https://github.com/hustvl/EVF-SAM) in ComfyUI. Please download model files from [BaiduNetdisk](https://pan.baidu.com/s/1EvaxgKcCxUpMbYKzLnEx9w?pwd=69bn) or [huggingface/EVF-SAM2](https://huggingface.co/YxZhang/evf-sam2/tree/main), [huggingface/EVF-SAM](https://huggingface.co/YxZhang/evf-sam/tree/main) to ```ComfyUI/models/EVF-SAM``` folder(save the models in their respective subdirectories).
+Due to the introduction of new dependencies package, after the plugin upgrade, please reinstall the dependency packages.
 * Commit [ImageTaggerSave](#ImageTaggerSave) and [ImageAutoCropV3](#ImageAutoCropV3) nodes. Used to implement the automatic trimming and marking workflow for the training set (the workflow ```image_tagger_save.json``` is located in the workflow directory).
 * Commit [CheckMaskV2](#CheckMaskV2) node, Added the ```simple``` method to detect masks more quickly.
 * Commit [ImageReel](#ImageReel) and [ImageReelComposite](#ImageReelComposite) nodes to composite multiple images on a canvas.
@@ -929,7 +947,7 @@ Node options:
 ### <a id="table1">ExtendCanvasV2</a>
 V2 upgrade to ExtendCanvas.
 
-Based on ExtendCanvas, color is modified to be a string type, and it supports external ```ColorPicker``` input.
+Based on ExtendCanvas, color is modified to be a string type, and it supports external ```ColorPicker``` input, Support negative value input, it means image will be cropped.
 ![image](image/extend_canvas_v2_node.jpg)    
 
 ### XY to <a id="table1">Percent</a>
@@ -1090,6 +1108,10 @@ Node options:
 Open the text editing software and find the line starting with "FONT_dir=", after "=", enter the custom folder path name. all font files in this folder will be collected and displayed in the node list during ComfyUI initialization.
 If the folder set in ini is invalid, the font folder that comes with the plugin will be enabled.
 
+### <a id="table1">TextImageV2</a>
+![image](image/text_image_v2_node.jpg)    
+
+This node is merged from [heshengtao](https://github.com/heshengtao). The PR modifies the scaling of the image text node based on the TextImage node. The font spacing follows the scaling, and the coordinates are no longer based on the top left corner of the text, but on the center point of the entire line of text. Thank you for the author's contribution.
 
 ### <a id="table1">LaMa</a>
 ![image](image/lama_example.jpg)    
@@ -1273,6 +1295,23 @@ Output a floating-point value with a precision of 5 decimal places.
 ### <a id="table1">Boolean</a>
 ![image](image/boolean_node.jpg)    
 Output a boolean value.
+
+### <a id="table1">RandomGenerator</a>
+Used to generate random value within a specified range, with outputs of int, float, and boolean. Supports batch and list generation, and supports batch generation of a set of different random number lists based on image batch.
+![image](image/random_generator_example.jpg)    
+
+Node Options:
+![image](image/random_generator_node.jpg)  
+* image: Optional input, generate a list of random numbers that match the quantity in batches according to the image.
+* min_value: Minimum value. Random numbers will randomly take values from the minimum to the maximum.
+* max_value: Maximum value. Random numbers will randomly take values from the minimum to the maximum.
+* float_decimal_places: Precision of float value.
+* fix_seed:Is the random number seed fixed. If this option is fixed, the generated random number will always be the same.
+
+Outputs:
+int: Integer random number.
+float: Float random number.
+bool: Boolean random number.
 
 ### <a id="table1">NumberCalculator</a>
 ![image](image/number_calculator_node.jpg)    
@@ -1510,7 +1549,7 @@ Output:
 * y: The y-coordinate of the top left corner position.
 
 
-## <a id="table1">Ultra</a>节点组
+## <a id="table1">Ultra</a> Nodes
 ![image](image/ultra_nodes.jpg)   
 Nodes that use ultra fine edge masking processing methods, the latest version of nodes includes: SegmentAnythingUltraV2, RmBgUltraV2, BiRefNetUltra, PersonMaskUltraV2, SegformerB2ClothesUltra and MaskEdgeUltraDetailV2.
 There are three edge processing methods for these nodes:
@@ -1563,6 +1602,143 @@ On the basis of SegmentAnythingUltra, the following changes have been made:
 * detail_method: Edge processing methods. provides VITMatte, VITMatte(local), PyMatting, GuidedFilter. If the model has been downloaded after the first use of VITMatte, you can use VITMatte (local) afterwards.
 * detail_erode: Mask the erosion range inward from the edge. the larger the value, the larger the range of inward repair.
 * detail_dilate: The edge of the mask expands outward. the larger the value, the wider the range of outward repair.
+* device: Set whether the VitMatte to use cuda.
+* max_megapixels: Set the maximum size for VitMate operations.
+
+
+### <a id="table1">SAM2Ultra</a>
+This node is modified from [kijai/ComfyUI-segment-anything-2](https://github.com/kijai/ComfyUI-segment-anything-2). Thank to [kijai](https://github.com/kijai) for making significant contributions to the Comfyui community.    
+SAM2 Ultra node only support single image. If you need to process multiple images, please first convert the image batch to image list.    
+*Download models from [BaiduNetdisk](https://pan.baidu.com/s/1xaQYBA6ktxvAxm310HXweQ?pwd=auki) or [huggingface.co/Kijai/sam2-safetensors](https://huggingface.co/Kijai/sam2-safetensors/tree/main) and copy to ```ComfyUI/models/sam2``` folder.
+
+![image](image/sam2_example.jpg)    
+
+Node Options:  
+![image](image/sam2_ultra_node.jpg)    
+
+* image: The image to segment.
+* bboxes: Input recognition box data.
+* sam2_model: Select the SAM2 model.
+* presicion: Model's persicion. can be selected from fp16, bf16, and fp32.
+* bbox_select: Select the input box data. There are three options: "all" to select all, "first" to select the box with the highest confidence, and "by_index" to specify the index of the box.
+* select_index: This option is valid when bbox_delect is 'by_index'. 0 is the first one. Multiple values can be entered, separated by any non numeric character, including but not limited to commas, periods, semicolons, spaces or letters, and even Chinese.
+* cache_model: Whether to cache the model. After caching the model, it will save time for model loading.
+* detail_method: Edge processing methods. provides VITMatte, VITMatte(local), PyMatting, GuidedFilter. If the model has been downloaded after the first use of VITMatte, you can use VITMatte (local) afterwards.
+* detail_erode: Mask the erosion range inward from the edge. the larger the value, the larger the range of inward repair.
+* detail_dilate: The edge of the mask expands outward. the larger the value, the wider the range of outward repair.
+* black_point: Edge black sampling threshold.
+* white_point: Edge white sampling threshold.
+* process_detail: Set to false here will skip edge processing to save runtime.
+* device: Set whether the VitMatte to use cuda.
+* max_megapixels: Set the maximum size for VitMate operations.
+
+### <a id="table1">SAM2VideoUltra</a>
+SAM2 Video Ultra node support processing multiple frames of images or video sequences. Please define the recognition box data in the first frame of the sequence to ensure correct recognition.
+
+
+https://github.com/user-attachments/assets/4726b8bf-9b98-4630-8f54-cb7ed7a3d2c5
+
+https://github.com/user-attachments/assets/b2a45c96-4be1-4470-8ceb-addaf301b0cb
+
+Node Options:  
+![image](image/sam2_video_ultra_node.jpg)    
+
+* image: The image to segment.
+* bboxes: Optional input of recognition bbox data. ```bboxes``` and ```first_frame_mask``` must have least one input. If first_frame_mask inputed, bbboxes will be ignored.
+* first_frame_mask: Optional input of the first frame mask. The mask will be used as the first frame recognition object. ```bboxes``` and ```first_frame_mask``` must have least one input. If first_frame_mask inputed, bbboxes will be ignored.
+* pre_mask: Optional input mask, which will serve as a propagation focus range limitation and help improve recognition accuracy.
+* sam2_model: Select the SAM2 model.
+* presicion: Model's persicion. can be selected from fp16 and bf16.
+* cache_model: Whether to cache the model. After caching the model, it will save time for model loading.
+* individual_object: When set to True, it will focus on identifying a single object. When set to False, attempts will be made to generate recognition boxes for multiple objects.
+* mask_preview_color: Display the color of non masked areas in the preview output. 
+* detail_method: Edge processing methods. Only VITMatte method can be used.
+* detail_erode: Mask the erosion range inward from the edge. the larger the value, the larger the range of inward repair.
+* detail_dilate: The edge of the mask expands outward. the larger the value, the wider the range of outward repair.
+* black_point: Edge black sampling threshold.
+* white_point: Edge white sampling threshold.
+* process_detail: Set to false here will skip edge processing to save runtime.
+* device: Only cuda can be used.
+* max_megapixels: Set the maximum size for VitMate operations.A larger size will result in finer mask edges, but it will lead to a significant decrease in computation speed.
+
+### <a id="table1">ObjectDetectorFL2</a>
+Use the Florence2 model to identify objects in images and output recognition box data.    
+*Download models from [BaiduNetdisk](https://pan.baidu.com/s/1hzw9-QiU1vB8pMbBgofZIA?pwd=mfl3) and copy to ```ComfyUI/models/florence2``` folder.
+
+Node Options:  
+![image](image/object_detector_fl2_node.jpg)    
+* image: The image to segment.
+* florence2_model: Florence2 model, it from [LoadFlorence2Model](#LoadFlorence2Model) node.
+* prompt: Describe the object that needs to be identified. 
+* sort_method: The selection box sorting method has 3 options: "left_to_right", "top_to_bottom" and "big_to_small".
+* bbox_select: Select the input box data. There are three options: "all" to select all, "first" to select the box with the highest confidence, and "by_index" to specify the index of the box.
+* select_index: This option is valid when bbox_delect is 'by_index'. 0 is the first one. Multiple values can be entered, separated by any non numeric character, including but not limited to commas, periods, semicolons, spaces or letters, and even Chinese.
+
+### <a id="table1">ObjectDetectorYOLOWorld</a>
+Use the YOLO-World model to identify objects in images and output recognition box data.     
+*Download models from [BaiduNetdisk](https://pan.baidu.com/s/1QpjajeTA37vEAU2OQnbDcQ?pwd=nqsk) or [GoogleDrive](https://drive.google.com/drive/folders/1nrsfq4S-yk9ewJgwrhXAoNVqIFLZ1at7?usp=sharing) and copy to ```ComfyUI/models/yolo-world``` folder.
+
+Node Options:  
+![image](image/object_detector_yolo_world_node.jpg)    
+* image: The image to segment.
+* confidence_threshold: The threshold of confidence.
+* nms_iou_threshold: The threshold of Non-Maximum Suppression.
+* prompt: Describe the object that needs to be identified.
+* sort_method: The selection box sorting method has 3 options: "left_to_right", "top_to_bottom" and "big_to_small".
+* bbox_select: Select the input box data. There are three options: "all" to select all, "first" to select the box with the highest confidence, and "by_index" to specify the index of the box.
+* select_index: This option is valid when bbox_delect is 'by_index'. 0 is the first one. Multiple values can be entered, separated by any non numeric character, including but not limited to commas, periods, semicolons, spaces or letters, and even Chinese.
+
+### <a id="table1">ObjectDetectorYOLO8</a>
+Use the YOLO-8 model to identify objects in images and output recognition box data.    
+*Download models from [GoogleDrive](https://drive.google.com/drive/folders/1I5TISO2G1ArSkKJu1O9b4Uvj3DVgn5d2) or [BaiduNetdisk](https://pan.baidu.com/s/1pEY6sjABQaPs6QtpK0q6XA?pwd=grqe)  and copy to ```ComfyUI/models/yolo``` folder.
+
+Node Options:  
+![image](image/object_detector_yolo8_node.jpg)
+* image: The image to segment.
+* yolo_model: Choose the yolo model.
+* sort_method: The selection box sorting method has 3 options: "left_to_right", "top_to_bottom" and "big_to_small".
+* bbox_select: Select the input box data. There are three options: "all" to select all, "first" to select the box with the highest confidence, and "by_index" to specify the index of the box.
+* select_index: This option is valid when bbox_delect is 'by_index'. 0 is the first one. Multiple values can be entered, separated by any non numeric character, including but not limited to commas, periods, semicolons, spaces or letters, and even Chinese.
+
+### <a id="table1">ObjectDetectorMask</a>
+Use mask as recognition box data. All areas surrounded by white areas on the mask will be recognized as an object. Multiple enclosed areas will be identified separately.   
+
+Node Options:  
+![image](image/object_detector_mask_node.jpg)
+* object_mask: The mask input.
+* sort_method: The selection box sorting method has 3 options: "left_to_right", "top_to_bottom" and "big_to_small".
+* bbox_select: Select the input box data. There are three options: "all" to select all, "first" to select the box with the highest confidence, and "by_index" to specify the index of the box.
+* select_index: This option is valid when bbox_delect is 'by_index'. 0 is the first one. Multiple values can be entered, separated by any non numeric character, including but not limited to commas, periods, semicolons, spaces or letters, and even Chinese.
+
+### <a id="table1">BBoxJoin</a>
+Merge recognition box data.   
+
+Node Options:  
+![image](image/bbox_join_node.jpg)
+* bboxes_1: Required input. The first set of identification boxes.
+* bboxes_2: Optional input. The second set of identification boxes.
+* bboxes_3: Optional input. The third set of identification boxes.
+* bboxes_4: Optional input. The fourth set of identification boxes.
+
+### <a id="table1">EVF-SAMUltra</a>
+This node is implementation of [EVF-SAM](https://github.com/hustvl/EVF-SAM) in ComfyUI.     
+*Please download model files from [BaiduNetdisk](https://pan.baidu.com/s/1EvaxgKcCxUpMbYKzLnEx9w?pwd=69bn) or [huggingface/EVF-SAM2](https://huggingface.co/YxZhang/evf-sam2/tree/main), [huggingface/EVF-SAM](https://huggingface.co/YxZhang/evf-sam/tree/main) to ```ComfyUI/models/EVF-SAM``` folder(save the models in their respective subdirectories).
+![image](image/evf_sam_ultra_example.jpg)    
+
+Node Options:  
+![image](image/evf_sam_ultra_node.jpg)    
+
+* image: The input image.
+* model: Select the model. Currently, there are options for evf-sam2 and evf sam.
+* presicion: Model accuracy can be selected from fp16, bf16, and fp32.
+* load_in_bit: Load the model with positional accuracy. You can choose from full, 8, and 4.
+* pormpt: Prompt words used for segmentation.
+* detail_method: Edge processing methods. provides VITMatte, VITMatte(local), PyMatting, GuidedFilter. If the model has been downloaded after the first use of VITMatte, you can use VITMatte (local) afterwards.
+* detail_erode: Mask the erosion range inward from the edge. the larger the value, the larger the range of inward repair.
+* detail_dilate: The edge of the mask expands outward. the larger the value, the wider the range of outward repair.
+* black_point: Edge black sampling threshold.
+* white_point: Edge white sampling threshold.
+* process_detail: Set to false here will skip edge processing to save runtime.
 * device: Set whether the VitMatte to use cuda.
 * max_megapixels: Set the maximum size for VitMate operations.
 
@@ -1641,6 +1817,35 @@ Node options:
 * process_detail: Set to false here will skip edge processing to save runtime.
 * device: Set whether the VitMatte to use cuda.
 * max_megapixels: Set the maximum size for VitMate operations.
+
+
+### <a id="table1">BiRefNetUltraV2</a>
+This node supports the use of the latest BiRefNet model. 
+*Download model file from [BaiduNetdisk](https://pan.baidu.com/s/12z3qUuqag3nqpN2NJ5pSzg?pwd=ek65) or [GoogleDrive](https://drive.google.com/drive/folders/1s2Xe0cjq-2ctnJBR24563yMSCOu4CcxM) named ```BiRefNet-general-epoch_244.pth``` to ```ComfyUI/Models/BiRefNet/pth``` folder. You can also download more BiRefNet models and put them here.
+
+![image](image/birefnet_ultra_v2_example.jpg)    
+
+Node Options:  
+![image](image/birefnet_ultra_v2_node.jpg)  
+
+* image: The input image.
+* birefnet_model: The BiRefNet model is input and it is output from the LoadBiRefNetModel node.
+* detail_method: Edge processing methods. provides VITMatte, VITMatte(local), PyMatting, GuidedFilter. If the model has been downloaded after the first use of VITMatte, you can use VITMatte (local) afterwards.
+* detail_erode: Mask the erosion range inward from the edge. the larger the value, the larger the range of inward repair.
+* detail_dilate: The edge of the mask expands outward. the larger the value, the wider the range of outward repair.
+* black_point: Edge black sampling threshold.
+* white_point: Edge white sampling threshold.
+* process_detail: Due to the excellent edge processing of BiRefNet, it is set to False by default here.
+* device: Set whether the VitMatte to use cuda.
+* max_megapixels: Set the maximum size for VitMate operations.
+
+### <a id="table1">LoadBiRefNetModel</a>
+Load the BiRefNet model.
+
+Node Options:  
+![image](image/load_birefnet_model_node.jpg)  
+
+* model: Select the model. List the files in the  ```CoomfyUI/models/BiRefNet/pth```  folder for selection.
 
 ### <a id="table1">TransparentBackgroundUltra</a>
 Using the transparent-background model to remove background has better recognition ability and speed, while also having ultra-high edge details.

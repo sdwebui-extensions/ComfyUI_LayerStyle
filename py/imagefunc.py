@@ -33,6 +33,7 @@ import torch.nn.functional as F
 from transformers import AutoModel, AutoProcessor, StoppingCriteria, StoppingCriteriaList, AutoModelForCausalLM
 from colorsys import rgb_to_hsv
 import folder_paths
+import comfy.model_management
 from .filmgrainer import processing as processing_utils
 from .blendmodes import *
 
@@ -1495,7 +1496,7 @@ def generate_VITMatte(image:Image, trimap:Image, local_files_only:bool=False, de
     if width * height > max_megapixels:
         image = image.resize((target_width, target_height), Image.BILINEAR)
         trimap = trimap.resize((target_width, target_height), Image.BILINEAR)
-        log(f"vitmatte image size {width}x{height} too large, resize to {target_width}x{target_height} for processing.")
+        # log(f"vitmatte image size {width}x{height} too large, resize to {target_width}x{target_height} for processing.")
     model_name = "hustvl/vitmatte-small-composition-1k"
     if os.path.exists("/stable-diffusion-cache/models/vitmatte"):
         model_name = "/stable-diffusion-cache/models/vitmatte"
@@ -1509,7 +1510,7 @@ def generate_VITMatte(image:Image, trimap:Image, local_files_only:bool=False, de
             device = torch.device('cpu')
     vit_matte_model = load_VITMatte_model(model_name=model_name, local_files_only=local_files_only)
     vit_matte_model.model.to(device)
-    log(f"vitmatte processing, image size = {image.width}x{image.height}, device = {device}.")
+    # log(f"vitmatte processing, image size = {image.width}x{image.height}, device = {device}.")
     inputs = vit_matte_model.processor(images=image, trimaps=trimap, return_tensors="pt")
     with torch.no_grad():
         inputs = {k: v.to(device) for k, v in inputs.items()}
@@ -1936,6 +1937,14 @@ def is_contain_chinese(check_str:str) -> bool:
             return True
     return False
 
+# 生成随机颜色
+def generate_random_color():
+    """
+    Generate a random color in hexadecimal format.
+    """
+    # random.seed(int(time.time()))
+    return "#{:06x}".format(random.randint(0x101010, 0xFFFFFF))
+
 # 提取字符串中的int数为列表
 def extract_numbers(string):
     return [int(s) for s in re.findall(r'\d+', string)]
@@ -2087,6 +2096,192 @@ class AnyType(str):
   def __ne__(self, __value: object) -> bool:
     return False
 
+
+
+'''Load File'''
+
+def get_files(model_path: str, file_ext_list:list, cache_dir: str=None) -> dict:
+    file_list = []
+    for ext in file_ext_list:
+        file_list.extend(glob.glob(os.path.join(model_path, '*' + ext)))
+        if cache_dir is not None:
+            file_list.extend(glob.glob(os.path.join(cache_dir, '*' + ext)))
+    files_dict = {}
+    for i in range(len(file_list)):
+        _, filename = os.path.split(file_list[i])
+        files_dict[filename] = file_list[i]
+    return files_dict
+
+# def load_inference_prompt() -> str:
+#     inference_prompt_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), "resource",
+#                                          "inference.prompt")
+#     ret_value = ''
+#     try:
+#         with open(inference_prompt_file, 'r') as f:
+#             ret_value = f.readlines()
+#     except Exception as e:
+#         log(f'Warning: {inference_prompt_file} ' + repr(e) + f", check it to be correct. ", message_type='warning')
+#     return  ''.join(ret_value)
+
+def load_custom_size() -> list:
+    custom_size_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), "custom_size.ini")
+    ret_value = ['1024 x 1024',
+                '768 x 512',
+                '512 x 768',
+                '1280 x 720',
+                '720 x 1280',
+                '1344 x 768',
+                '768 x 1344',
+                '1536 x 640',
+                '640 x 1536'
+                 ]
+    try:
+        with open(custom_size_file, 'r') as f:
+            ini = f.readlines()
+            for line in ini:
+                if not line.startswith(f'#'):
+                    ret_value.append(line.strip())
+    except Exception as e:
+        pass
+        # log(f'Warning: {custom_size_file} not found' + f", use default size. ")
+    return ret_value
+
+def get_api_key(api_name:str) -> str:
+    api_key_ini_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), "api_key.ini")
+    ret_value = ''
+    try:
+        with open(api_key_ini_file, 'r') as f:
+            ini = f.readlines()
+            for line in ini:
+                if line.startswith(f'{api_name}='):
+                    ret_value = line[line.find('=') + 1:].rstrip().lstrip()
+                    break
+    except Exception as e:
+        log(f'Warning: {api_key_ini_file} ' + repr(e) + f", check it to be correct. ", message_type='warning')
+    remove_char = ['"', "'", '“', '”', '‘', '’']
+    for i in remove_char:
+        if i in ret_value:
+            ret_value = ret_value.replace(i, '')
+    if len(ret_value) < 4:
+        log(f'Warning: Invalid API-key, Check the key in {api_key_ini_file}.', message_type='warning')
+
+    return ret_value
+
+def get_resource_dir() -> list:
+    default_lut_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'lut')
+    default_font_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'font')
+    resource_dir_ini_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))),
+                                         "resource_dir.ini")
+    try:
+        with open(resource_dir_ini_file, 'r') as f:
+            ini = f.readlines()
+            for line in ini:
+                if line.startswith('LUT_dir='):
+                    _ldir = line[line.find('=') + 1:].rstrip().lstrip()
+                    if os.path.exists(_ldir):
+                        default_lut_dir = _ldir
+                    # else:
+                    #     log(f'Invalid LUT directory, default to be used. check {resource_dir_ini_file}')
+                elif line.startswith('FONT_dir='):
+                    _fdir = line[line.find('=') + 1:].rstrip().lstrip()
+                    if os.path.exists(_fdir):
+                        default_font_dir = _fdir
+                    # else:
+                    #     log(f'Invalid FONT directory, default to be used. check {resource_dir_ini_file}')
+    except Exception as e:
+        # log(f'Warning: {resource_dir_ini_file} ' + repr(e) + f", default directory to be used. ")
+        log(f'Warning: {resource_dir_ini_file} not found' + f", default directory to be used. ")
+
+    __lut_file_list = glob.glob(default_lut_dir + '/*.cube')
+    LUT_DICT = {}
+    for i in range(len(__lut_file_list)):
+        _, __filename =  os.path.split(__lut_file_list[i])
+        LUT_DICT[__filename] = __lut_file_list[i]
+    LUT_LIST = list(LUT_DICT.keys())
+    log(f'Find {len(LUT_LIST)} LUTs in {default_lut_dir}')
+
+    __font_file_list = glob.glob(default_font_dir + '/*.ttf')
+    __font_file_list.extend(glob.glob(default_font_dir + '/*.otf'))
+    FONT_DICT = {}
+    for i in range(len(__font_file_list)):
+        _, __filename =  os.path.split(__font_file_list[i])
+        FONT_DICT[__filename] = __font_file_list[i]
+    FONT_LIST = list(FONT_DICT.keys())
+    log(f'Find {len(FONT_LIST)} Fonts in {default_font_dir}')
+
+    return (LUT_DICT, FONT_DICT)
+
+(LUT_DICT, FONT_DICT) = get_resource_dir()
+for user_font in glob.iglob(os.path.join(folder_paths.models_dir, 'fonts/*.ttf')):
+    _, __filename =  os.path.split(user_font)
+    FONT_DICT[__filename] = user_font
+for user_font in glob.iglob(os.path.join(folder_paths.models_dir, 'fonts/*.otf')):
+    _, __filename =  os.path.split(user_font)
+    FONT_DICT[__filename] = user_font
+FONT_LIST = list(FONT_DICT.keys())
+LUT_LIST = list(LUT_DICT.keys())
+
+# def get_models_dir() -> dict:
+#     models_dir_ini_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), "models_dir.ini")
+#     MODELS_DIR = {}
+#     model_dir_list = [
+#         "birefnet_dir",
+#         "evf-sam_dir",
+#         "florence2_dir",
+#         "lama_dir",
+#         "rmbg_dir",
+#         "segformerB2_dir",
+#         "segformerB3_clothes_dir",
+#         "segformerB3_fashion_dir",
+#         "sam2_dir",
+#         "transparent-background_dir",
+#         "yolo8_dir",
+#         "yolo_world_dir"
+#     ]
+#     try:
+#         with open(models_dir_ini_file, 'r') as f:
+#             ini = f.readlines()
+#             for line in ini:
+#                 for model_dir in model_dir_list:
+#                     if line.startswith(model_dir):
+#                         path = line[line.find('=') + 1:].rstrip().lstrip()
+#                         if os.path.exists(path):
+#                             MODELS_DIR[model_dir] = path
+#         log(f'Find {len(MODELS_DIR)} path(s) in {models_dir_ini_file}.')
+#     except Exception as e:
+#         log(f'Warning: {models_dir_ini_file} not found' + f', default directory to be used.')
+#
+#     return MODELS_DIR
+#
+# MODELS_DIR = get_models_dir()
+
+def draw_bounding_boxes(image: Image, bboxes: list, color: str = "#FF0000", line_width: int = 5) -> Image:
+    """
+    Draw bounding boxes on the image using the coordinates provided in the bboxes dictionary.
+    """
+    font_size = 25
+    font = ImageFont.truetype(list(FONT_DICT.items())[0][1], font_size)
+
+    if len(bboxes) > 0:
+        draw = ImageDraw.Draw(image)
+        width, height = image.size
+        if line_width < 0:  # auto line width
+            line_width = (image.width + image.height) // 1000
+
+        for index, box in enumerate(bboxes):
+            random_color = generate_random_color()
+            if color != "random":
+                random_color = color
+            xmin = min(box[0], box[2])
+            xmax = max(box[0], box[2])
+            ymin = min(box[1], box[3])
+            ymax = max(box[1], box[3])
+            draw.rectangle([xmin, ymin, xmax, ymax], outline=random_color, width=line_width)
+            draw.text((xmin, ymin - font_size*1.2), str(index), font=font, fill=random_color)
+
+    return image
+
+
 '''Constant'''
 
 chop_mode = [
@@ -2113,112 +2308,6 @@ chop_mode = [
 
 # Blend Mode from Virtuoso Pack https://github.com/chrisfreilich/virtuoso-nodes
 chop_mode_v2 = list(BLEND_MODES.keys())
-
-
-'''Load INI File'''
-
-default_lut_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'lut')
-default_font_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'font')
-resource_dir_ini_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), "resource_dir.ini")
-api_key_ini_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), "api_key.ini")
-custom_size_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), "custom_size.ini")
-
-# def load_inference_prompt() -> str:
-#     inference_prompt_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), "resource",
-#                                          "inference.prompt")
-#     ret_value = ''
-#     try:
-#         with open(inference_prompt_file, 'r') as f:
-#             ret_value = f.readlines()
-#     except Exception as e:
-#         log(f'Warning: {inference_prompt_file} ' + repr(e) + f", check it to be correct. ", message_type='warning')
-#     return  ''.join(ret_value)
-
-def load_custom_size() -> list:
-    ret_value = ['1024 x 1024',
-                '768 x 512',
-                '512 x 768',
-                '1280 x 720',
-                '720 x 1280',
-                '1344 x 768',
-                '768 x 1344',
-                '1536 x 640',
-                '640 x 1536'
-                 ]
-    try:
-        with open(custom_size_file, 'r') as f:
-            ini = f.readlines()
-            for line in ini:
-                if not line.startswith(f'#'):
-                    ret_value.append(line.strip())
-    except Exception as e:
-        pass
-        # log(f'Warning: {custom_size_file} not found' + f", use default size. ")
-    return ret_value
-
-def get_api_key(api_name:str) -> str:
-    ret_value = ''
-    try:
-        with open(api_key_ini_file, 'r') as f:
-            ini = f.readlines()
-            for line in ini:
-                if line.startswith(f'{api_name}='):
-                    ret_value = line[line.find('=') + 1:].rstrip().lstrip()
-                    break
-    except Exception as e:
-        log(f'Warning: {api_key_ini_file} ' + repr(e) + f", check it to be correct. ", message_type='warning')
-    remove_char = ['"', "'", '“', '”', '‘', '’']
-    for i in remove_char:
-        if i in ret_value:
-            ret_value = ret_value.replace(i, '')
-    if len(ret_value) < 4:
-        log(f'Warning: Invalid API-key, Check the key in {api_key_ini_file}.', message_type='warning')
-
-    return ret_value
-
-try:
-    with open(resource_dir_ini_file, 'r') as f:
-        ini = f.readlines()
-        for line in ini:
-            if line.startswith('LUT_dir='):
-                _ldir = line[line.find('=') + 1:].rstrip().lstrip()
-                if os.path.exists(_ldir):
-                    default_lut_dir = _ldir
-                else:
-                    log(f'Invalid LUT directory, default to be used. check {resource_dir_ini_file}')
-            elif line.startswith('FONT_dir='):
-                _fdir = line[line.find('=') + 1:].rstrip().lstrip()
-                if os.path.exists(_fdir):
-                    default_font_dir = _fdir
-                else:
-                    log(f'Invalid FONT directory, default to be used. check {resource_dir_ini_file}')
-except Exception as e:
-    # log(f'Warning: {resource_dir_ini_file} ' + repr(e) + f", default directory to be used. ")
-    log(f'Warning: {resource_dir_ini_file} not found' + f", default directory to be used. ")
-
-__lut_file_list = glob.glob(default_lut_dir + '/*.cube')
-LUT_DICT = {}
-for i in range(len(__lut_file_list)):
-    _, __filename =  os.path.split(__lut_file_list[i])
-    LUT_DICT[__filename] = __lut_file_list[i]
-LUT_LIST = list(LUT_DICT.keys())
-log(f'Find {len(LUT_LIST)} LUTs in {default_lut_dir}')
-
-__font_file_list = glob.glob(default_font_dir + '/*.ttf')
-__font_file_list.extend(glob.glob(default_font_dir + '/*.otf'))
-FONT_DICT = {}
-for i in range(len(__font_file_list)):
-    _, __filename =  os.path.split(__font_file_list[i])
-    FONT_DICT[__filename] = __font_file_list[i]
-import folder_paths
-for user_font in glob.iglob(os.path.join(folder_paths.models_dir, 'fonts/*.ttf')):
-    _, __filename =  os.path.split(user_font)
-    FONT_DICT[__filename] = user_font
-for user_font in glob.iglob(os.path.join(folder_paths.models_dir, 'fonts/*.otf')):
-    _, __filename =  os.path.split(user_font)
-    FONT_DICT[__filename] = user_font
-FONT_LIST = list(FONT_DICT.keys())
-log(f'Find {len(FONT_LIST)} Fonts in {default_font_dir}')
 
 gemini_generate_config = {
     "temperature": 0,
