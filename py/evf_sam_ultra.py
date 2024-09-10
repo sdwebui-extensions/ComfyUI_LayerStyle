@@ -76,6 +76,8 @@ class EVF_SAM_Ultra:
             pass
         if not os.path.exists(model_path):
             model_path = os.path.join(folder_paths.models_dir, model_folder_name, model)
+        if not os.path.exists(model_path) and os.path.exists(os.path.join(folder_paths.cache_dir, model_folder_name, model)):
+            model_path = os.path.join(folder_paths.cache_dir, model_folder_name, model)
 
         for i in image:
             i = torch.unsqueeze(i, 0)
