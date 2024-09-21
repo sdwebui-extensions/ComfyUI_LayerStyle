@@ -5,6 +5,9 @@ from .imagefunc import *
 
 model_path = os.path.join(folder_paths.models_dir, 'yolo')
 cache_path = '/stable-diffusion-cache/models/yolo'
+model_ext = [".pt"]
+FILES_DICT = get_files(model_path, model_ext, cache_path)
+FILE_LIST = list(FILES_DICT.keys())
 
 class YoloV8Detect:
 
@@ -14,9 +17,6 @@ class YoloV8Detect:
 
     @classmethod
     def INPUT_TYPES(self):
-        model_ext = [".pt"]
-        FILES_DICT = get_files(model_path, model_ext, cache_path)
-        FILE_LIST = list(FILES_DICT.keys())
         mask_merge = ["all", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
         return {
             "required": {
@@ -72,7 +72,7 @@ class YoloV8Detect:
                 else:
                     ret_yolo_masks.append(torch.zeros((1, _image.size[1], _image.size[0]), dtype=torch.float32))
                     # ret_yolo_masks.append(image2mask(Image.new('L', _image.size, "black")))
-                    log(f"{NODE_NAME} mask or box not detected.")
+                    log(f"{self.NODE_NAME} mask or box not detected.")
 
                 # merge mask
                 _mask = ret_yolo_masks[0]
