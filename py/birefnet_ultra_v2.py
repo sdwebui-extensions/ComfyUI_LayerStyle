@@ -5,8 +5,8 @@ from torchvision import transforms
 import tqdm
 from .imagefunc import *
 from comfy.utils import ProgressBar
-sys.path.append(os.path.join(os.path.dirname(__file__), 'BiRefNet'))
-from .BiRefNet.models.birefnet import BiRefNet
+sys.path.append(os.path.join(os.path.dirname(__file__), 'BiRefNet_v2'))
+
 
 def get_models():
     model_path = os.path.join(folder_paths.models_dir, 'BiRefNet', 'pth')
@@ -42,10 +42,11 @@ class LS_LoadBiRefNetModel:
     CATEGORY = '😺dzNodes/LayerMask'
 
     def load_birefnet_model(self, model):
-        from .BiRefNet.utils import check_state_dict
+        from .BiRefNet_v2.models.birefnet import BiRefNet
+        from .BiRefNet_v2.utils import check_state_dict
         model_dict = get_models()
         self.birefnet = BiRefNet(bb_pretrained=False)
-        self.state_dict = torch.load(model_dict[model], map_location='cpu')
+        self.state_dict = torch.load(model_dict[model], map_location='cpu', weights_only=True)
         self.state_dict = check_state_dict(self.state_dict)
         self.birefnet.load_state_dict(self.state_dict)
         return (self.birefnet,)
@@ -121,7 +122,7 @@ class LS_BiRefNetUltraV2:
             resize_sampler = Image.BILINEAR
             _mask = _mask.resize(orig_image.size, resize_sampler)
             brightness_image = ImageEnhance.Brightness(_mask)
-            _mask = brightness_image.enhance(factor=1.01)
+            _mask = brightness_image.enhance(factor=1.08)
             _mask = image2mask(_mask)
 
             detail_range = detail_erode + detail_dilate

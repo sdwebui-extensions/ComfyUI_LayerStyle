@@ -22,9 +22,9 @@ fl2_model_repos = {
     "base-PromptGen": "MiaoshouAI/Florence-2-base-PromptGen",
     "CogFlorence-2-Large-Freeze": "thwri/CogFlorence-2-Large-Freeze",
     "CogFlorence-2.1-Large": "thwri/CogFlorence-2.1-Large",
-    "base-PromptGen-v1.5":"MiaoshouAI/Florence-2-base-PromptGen-v1.5"
+    "base-PromptGen-v1.5":"MiaoshouAI/Florence-2-base-PromptGen-v1.5",
+    "large-PromptGen-v1.5":"MiaoshouAI/Florence-2-large-PromptGen-v1.5"
 }
-
 
 def fixed_get_imports(filename) -> list[str]:
     """Workaround for FlashAttention"""
@@ -55,13 +55,36 @@ def load_model(version):
             model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
             processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
     except Exception as e:
-        log(f"Error loading model {version}: {str(e)}")
-        log("Attempting to load tokenizer instead of processor...")
         try:
             model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
             processor = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
         except Exception as e:
-            log(f"Error loading model or tokenizer: {str(e)}")
+            sys.path.append(model_path)
+            # Import the Florence modules
+            if version == 'large-PromptGen-v1.5':
+                from florence2_large.modeling_florence2 import Florence2ForConditionalGeneration
+                from florence2_large.configuration_florence2 import Florence2Config
+            elif version == 'base-PromptGen-v1.5':
+                from florence2_base_ft.modeling_florence2 import Florence2ForConditionalGeneration
+                from florence2_base_ft.configuration_florence2 import Florence2Config
+            else:
+                log(f"Error loading model or tokenizer: {str(e)}", message_type='error')
+                return (None, None)
+
+            attention = 'sdpa'
+            # Load the model configuration
+            model_config = Florence2Config.from_pretrained(model_path)
+            # Load the model
+            with patch("transformers.dynamic_module_utils.get_imports", fixed_get_imports):
+                model = Florence2ForConditionalGeneration.from_pretrained(
+                    model_path,
+                    config=model_config,
+                    attn_implementation=attention,
+                    device_map=device
+                ).to(device)
+
+            processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
+
 
     return (model.to(device), processor)
 
@@ -285,6 +308,21 @@ def process_image(model, processor, image, task_prompt, max_new_tokens, num_beam
         output_results = {'bboxes': results[task_prompt].get('quad_boxes', []),
                           'labels': results[task_prompt].get('labels', [])}
         return output_results, output_image
+    # gokaygokay/Florence-2-SD3-Captioner task
+    elif task_prompt == 'description':
+        task_prompt = '<DESCRIPTION>'
+        result = run_example(model, processor, task_prompt, image, max_new_tokens, num_beams, do_sample)
+        return result[task_prompt], None
+    # MiaoshouAI/Florence-2-large-PromptGen-v1.5 task
+    elif task_prompt == 'generate tags(PromptGen 1.5)':
+        task_prompt = '<GENERATE_TAGS>'
+        result = run_example(model, processor, task_prompt, image, max_new_tokens, num_beams, do_sample)
+        return result[task_prompt], None
+    elif task_prompt == 'mixed caption(PromptGen 1.5)':
+        task_prompt = '<MIXED_CAPTION>'
+        result = run_example(model, processor, task_prompt, image, max_new_tokens, num_beams, do_sample)
+        return result[task_prompt], None
+
     else:
         return "", None  # Return empty string and None for unknown task prompts
 
@@ -492,6 +530,9 @@ class Florence2Image2Prompt:
             "caption",
             "detailed caption",
             "more detailed caption",
+            'description',
+            'generate tags(PromptGen 1.5)',
+            'mixed caption(PromptGen 1.5)',
             "object detection",
             "dense region caption",
             "region proposal",
@@ -501,7 +542,7 @@ class Florence2Image2Prompt:
             "region to category",
             "region to description",
             "OCR",
-            "OCR with region"
+            "OCR with region",
             ]
         return {
             "required": {

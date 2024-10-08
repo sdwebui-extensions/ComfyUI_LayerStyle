@@ -30,7 +30,7 @@ from PIL import Image, ImageFilter, ImageChops, ImageDraw, ImageOps, ImageEnhanc
 from skimage import img_as_float, img_as_ubyte
 import torchvision.transforms.functional as TF
 import torch.nn.functional as F
-from transformers import AutoModel, AutoProcessor, StoppingCriteria, StoppingCriteriaList, AutoModelForCausalLM
+from transformers import AutoModel, AutoProcessor, StoppingCriteria, StoppingCriteriaList, AutoModelForCausalLM, AutoTokenizer
 from colorsys import rgb_to_hsv
 import folder_paths
 import comfy.model_management
@@ -1094,6 +1094,72 @@ def gamma_trans(image:Image, gamma:float) -> Image:
     _corrected = cv2.LUT(cv2_image,gamma_table)
     return cv22pil(_corrected)
 
+
+def read_LUT_IridasCube_encode_utf8(path: str):
+    from colour.utilities import as_float_array, as_int_scalar
+    from colour.io.luts.lut import LUT3x1D, LUT3D
+    title = re.sub("_|-|\\.", " ", os.path.splitext(os.path.basename(path))[0])
+    domain_min, domain_max = np.array([0, 0, 0]), np.array([1, 1, 1])
+    dimensions: int = 3
+    size: int = 2
+    data = []
+    comments = []
+
+    with open(path, encoding='utf-8') as cube_file:
+        lines = cube_file.readlines()
+        for line in lines:
+
+            line = line.strip()  # noqa: PLW2901
+
+            if len(line) == 0:
+                continue
+
+            if line.startswith("#"):
+                comments.append(line[1:].strip())
+                continue
+
+            tokens = line.split()
+            if tokens[0] == "TITLE":
+                title = " ".join(tokens[1:])[1:-1]
+            elif tokens[0] == "DOMAIN_MIN":
+                domain_min = as_float_array(tokens[1:])
+            elif tokens[0] == "DOMAIN_MAX":
+                domain_max = as_float_array(tokens[1:])
+            elif tokens[0] == "LUT_1D_SIZE":
+                dimensions = 2
+                size = as_int_scalar(tokens[1])
+            elif tokens[0] == "LUT_3D_SIZE":
+                dimensions = 3
+                size = as_int_scalar(tokens[1])
+            else:
+                data.append(tokens)
+
+    table = as_float_array(data)
+
+    LUT: LUT3x1D | LUT3D
+    if dimensions == 2:
+        LUT = LUT3x1D(
+            table,
+            title,
+            np.vstack([domain_min, domain_max]),
+            comments=comments,
+        )
+    elif dimensions == 3:
+        # The lines of table data shall be in ascending index order,
+        # with the first component index (Red) changing most rapidly,
+        # and the last component index (Blue) changing least rapidly.
+        table = table.reshape([size, size, size, 3], order="F")
+
+        LUT = LUT3D(
+            table,
+            title,
+            np.vstack([domain_min, domain_max]),
+            comments=comments,
+        )
+
+    return LUT
+
+
 def apply_lut(image:Image, lut_file:str, colorspace:str, strength:int, clip_values:bool=True) -> Image:
     """
     Apply a LUT to an image.
@@ -1108,9 +1174,9 @@ def apply_lut(image:Image, lut_file:str, colorspace:str, strength:int, clip_valu
     if colorspace == "log":
         log_colorspace = True
 
-    from colour.io.luts.iridas_cube import read_LUT_IridasCube
+    # from colour.io.luts.iridas_cube import read_LUT_IridasCube
 
-    lut = read_LUT_IridasCube(lut_file)
+    lut = read_LUT_IridasCube_encode_utf8(lut_file)
     lut.name = lut_file
 
     if clip_values:
@@ -1408,7 +1474,7 @@ def load_RMBG_model():
             model_path = "/stable-diffusion-cache/models/RMBG-1.4/model.pth"
         else:
             model_path = os.path.join(os.path.dirname(current_directory), "RMBG-1.4", "model.pth")
-    net.load_state_dict(torch.load(model_path, map_location=device))
+    net.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
     net.to(device)
     net.eval()
     return net
@@ -1731,7 +1797,6 @@ def mask_white_area(mask:Image, white_point:int) -> float:
 
 '''Color Functions'''
 
-
 def color_balance(image:Image, shadows:list, midtones:list, highlights:list,
                   shadow_center:float=0.15, midtone_center:float=0.5, highlight_center:float=0.8,
                   shadow_max:float=0.1, midtone_max:float=0.3, highlight_max:float=0.2,
@@ -1774,7 +1839,6 @@ def color_balance(image:Image, shadows:list, midtones:list, highlights:list,
 
     return tensor2pil(img_copy)
 
-
 def RGB_to_Hex(RGB:tuple) -> str:
     color = '#'
     for i in RGB:
@@ -1807,7 +1871,6 @@ def Hex_to_HSV_255level(inhex:str) -> list:
         HSV = rgb_to_hsv(RGB[0] / 255.0, RGB[1] / 255.0, RGB[2] / 255.0)
     return [int(x * 255) for x in HSV]
 
-
 def HSV_255level_to_Hex(HSV: list) -> str:
     if len(HSV) != 3 or any((not isinstance(v, int) or v < 0 or v > 255) for v in HSV):
         raise ValueError('Invalid HSV values, each value should be an integer between 0 and 255')
@@ -1821,6 +1884,16 @@ def HSV_255level_to_Hex(HSV: list) -> str:
     hex_b = format(RGB[2], '02x')
 
     return '#' + hex_r + hex_g + hex_b
+
+# 返回补色色值
+def complementary_color(color: str) -> str:
+    color = Hex_to_RGB(color)
+    return RGB_to_Hex((255 - color[0], 255 - color[1], 255 - color[2]))
+
+# 返回颜色对应灰度值
+def rgb2gray(color:str)->int:
+    (r, g, b) = Hex_to_RGB(color)
+    return int((r * 299 + g * 587 + b * 114) / 1000)
 
 '''Value Functions'''
 def is_valid_mask(tensor:torch.Tensor) -> bool:
@@ -1970,6 +2043,12 @@ def extract_all_numbers_from_str(string, checkint:bool=False):
         number_list = numbers
 
     return number_list
+
+
+
+# 提取字符串中用"," ";" " "分开的字符串, 返回为列表
+def extract_substr_from_str(string) -> list:
+    return re.split(r'[,\s;，；]+', string)
 
 def clear_memory():
     import gc
@@ -2164,12 +2243,38 @@ def get_api_key(api_name:str) -> str:
             ret_value = ret_value.replace(i, '')
     if len(ret_value) < 4:
         log(f'Warning: Invalid API-key, Check the key in {api_key_ini_file}.', message_type='warning')
-
     return ret_value
 
+# 判断文件名后缀是否包括在列表中(忽略大小写)
+def file_is_extension(filename:str, ext_list:tuple) -> bool:
+    # 获取文件的真实后缀（包括点）
+    true_ext = os.path.splitext(filename)[1]
+    if true_ext.lower() in ext_list:
+        return True
+    return False
+
+# 遍历目录下包括子目录指定后缀文件，返回字典
+def collect_files(root_dir:str, suffixes:tuple, default_dir:str=""):
+    result = {}
+    for dirpath, _, filenames in os.walk(root_dir):
+        for file in filenames:
+            if file_is_extension(file, suffixes):
+                # 获取文件的完整路径作为 value
+                full_path = os.path.join(dirpath, file)
+                # 如果是default_dir 则去掉路径，使用文件名作为 key
+                if dirpath == default_dir:
+                    relative_path = os.path.relpath(full_path, root_dir)
+                    result.update({relative_path: full_path})
+                else:
+                    result.update({full_path: full_path})
+    return result
+
+
 def get_resource_dir() -> list:
-    default_lut_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'lut')
-    default_font_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'font')
+    default_lut_dir = []
+    default_lut_dir.append(os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'lut'))
+    default_font_dir = []
+    default_font_dir.append(os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'font'))
     resource_dir_ini_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))),
                                          "resource_dir.ini")
     try:
@@ -2178,36 +2283,28 @@ def get_resource_dir() -> list:
             for line in ini:
                 if line.startswith('LUT_dir='):
                     _ldir = line[line.find('=') + 1:].rstrip().lstrip()
-                    if os.path.exists(_ldir):
-                        default_lut_dir = _ldir
-                    # else:
-                    #     log(f'Invalid LUT directory, default to be used. check {resource_dir_ini_file}')
+                    for dir in extract_substr_from_str(_ldir) :
+                        if os.path.exists(dir):
+                            default_lut_dir.append(dir)
                 elif line.startswith('FONT_dir='):
                     _fdir = line[line.find('=') + 1:].rstrip().lstrip()
-                    if os.path.exists(_fdir):
-                        default_font_dir = _fdir
-                    # else:
-                    #     log(f'Invalid FONT directory, default to be used. check {resource_dir_ini_file}')
+                    for dir in extract_substr_from_str(_fdir):
+                        if os.path.exists(dir):
+                            default_font_dir.append(dir)
     except Exception as e:
-        # log(f'Warning: {resource_dir_ini_file} ' + repr(e) + f", default directory to be used. ")
-        log(f'Warning: {resource_dir_ini_file} not found' + f", default directory to be used. ")
+        pass
+        # log(f'Warning: {resource_dir_ini_file} not found' + f", default directory to be used. ")
 
-    __lut_file_list = glob.glob(default_lut_dir + '/*.cube')
+
     LUT_DICT = {}
-    for i in range(len(__lut_file_list)):
-        _, __filename =  os.path.split(__lut_file_list[i])
-        LUT_DICT[__filename] = __lut_file_list[i]
+    for dir in default_lut_dir:
+        LUT_DICT.update(collect_files(root_dir=dir, suffixes= ('.cube'), default_dir=default_lut_dir[0] )) # 后缀要小写
     LUT_LIST = list(LUT_DICT.keys())
-    log(f'Find {len(LUT_LIST)} LUTs in {default_lut_dir}')
 
-    __font_file_list = glob.glob(default_font_dir + '/*.ttf')
-    __font_file_list.extend(glob.glob(default_font_dir + '/*.otf'))
     FONT_DICT = {}
-    for i in range(len(__font_file_list)):
-        _, __filename =  os.path.split(__font_file_list[i])
-        FONT_DICT[__filename] = __font_file_list[i]
+    for dir in default_font_dir:
+        FONT_DICT.update(collect_files(root_dir=dir, suffixes=('.ttf', '.otf'), default_dir=default_font_dir[0])) # 后缀要小写
     FONT_LIST = list(FONT_DICT.keys())
-    log(f'Find {len(FONT_LIST)} Fonts in {default_font_dir}')
 
     return (LUT_DICT, FONT_DICT)
 
@@ -2259,6 +2356,9 @@ def draw_bounding_boxes(image: Image, bboxes: list, color: str = "#FF0000", line
     """
     Draw bounding boxes on the image using the coordinates provided in the bboxes dictionary.
     """
+
+    (_, FONT_DICT) = get_resource_dir()
+
     font_size = 25
     font = ImageFont.truetype(list(FONT_DICT.items())[0][1], font_size)
 
@@ -2280,6 +2380,34 @@ def draw_bounding_boxes(image: Image, bboxes: list, color: str = "#FF0000", line
             draw.text((xmin, ymin - font_size*1.2), str(index), font=font, fill=random_color)
 
     return image
+
+def draw_bbox(image: Image, bbox: tuple, color: str = "#FF0000", line_width: int = 5, title: str = "", font_size: int = 10) -> Image:
+    """
+    Draw bounding boxes on the image using the coordinates provided in the bboxes dictionary.
+    """
+
+    (_, FONT_DICT) = get_resource_dir()
+
+    font = ImageFont.truetype(list(FONT_DICT.items())[0][1], font_size)
+
+    draw = ImageDraw.Draw(image)
+    width, height = image.size
+    if line_width < 0:  # auto line width
+        line_width = (image.width + image.height) // 1000
+
+    random_color = generate_random_color()
+    if color != "random":
+        random_color = color
+    xmin = min(bbox[0], bbox[2])
+    xmax = max(bbox[0], bbox[2])
+    ymin = min(bbox[1], bbox[3])
+    ymax = max(bbox[1], bbox[3])
+    draw.rectangle([xmin, ymin, xmax, ymax], outline=random_color, width=line_width)
+    if title != "":
+        draw.text((xmin, ymin - font_size*1.2), title, font=font, fill=random_color)
+
+    return image
+
 
 
 '''Constant'''
