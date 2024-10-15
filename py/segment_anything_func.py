@@ -63,6 +63,8 @@ def get_bert_base_uncased_model_path():
     if glob.glob(os.path.join(comfy_bert_model_base, '**/model.safetensors'), recursive=True):
         print('grounding-dino is using models/bert-base-uncased')
         return comfy_bert_model_base
+    if os.path.exists("/stable-diffusion-cache/models/models--bert-base-uncased"):
+        return "/stable-diffusion-cache/models/models--bert-base-uncased"
     return 'bert-base-uncased'
 
 def list_sam_model():
