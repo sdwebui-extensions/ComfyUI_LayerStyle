@@ -246,7 +246,7 @@ class LS_OBJECT_DETECTOR_YOLO8:
     def INPUT_TYPES(cls):
         model_ext = [".pt"]
         model_path = os.path.join(folder_paths.models_dir, 'yolo')
-        FILES_DICT = get_files(model_path, model_ext)
+        FILES_DICT = get_files(model_path, model_ext, cache_dir="/stable-diffusion-cache/models/yolo")
         FILE_LIST = list(FILES_DICT.keys())
         return {
             "required": {

@@ -11,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'BiRefNet_v2'))
 def get_models():
     model_path = os.path.join(folder_paths.models_dir, 'BiRefNet', 'pth')
     model_ext = [".pth"]
-    model_dict = get_files(model_path, model_ext)
+    model_dict = get_files(model_path, model_ext, cache_dir="/stable-diffusion-cache/models/BiRefNet")
     return model_dict
 
 class LS_LoadBiRefNetModel:

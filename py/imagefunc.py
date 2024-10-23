@@ -2193,10 +2193,7 @@ def download_hg_model(model_id:str,exDir:str='') -> str:
     return model_checkpoint
 
 
-def get_files(model_path: str, file_ext_list:list) -> dict:
-    cache_dir = None
-    if os.path.exists(folder_paths.cache_dir):
-        cache_dir = os.path.join(folder_paths.cache_dir, "sam2")
+def get_files(model_path: str, file_ext_list:list, cache_dir=None) -> dict:
     file_list = []
     for ext in file_ext_list:
         file_list.extend(glob.glob(os.path.join(model_path, '*' + ext)))
