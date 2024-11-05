@@ -9,8 +9,7 @@ class ColorCorrectLUTapply:
 
     @classmethod
     def INPUT_TYPES(self):
-        (LUT_DICT, _) = get_resource_dir()
-        LUT_LIST = list(LUT_DICT.keys())
+        LUT_LIST = folder_paths.get_filename_list("luts")
 
         color_space_list = ['linear', 'log']
 
@@ -32,14 +31,12 @@ class ColorCorrectLUTapply:
 
     def color_correct_LUTapply(self, image, LUT, color_space, strength):
 
-        (LUT_DICT, _) = get_resource_dir()
-        log(f"LUT_DICT={LUT_DICT}")
         ret_images = []
         for i in image:
             i = torch.unsqueeze(i, 0)
             _image = tensor2pil(i)
 
-            lut_file = LUT_DICT[LUT]
+            lut_file = folder_paths.get_full_path("luts", LUT)
             ret_image = apply_lut(_image, lut_file=lut_file, colorspace=color_space, strength=strength)
 
             if _image.mode == 'RGBA':

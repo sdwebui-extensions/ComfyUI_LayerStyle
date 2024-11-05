@@ -10,8 +10,7 @@ class TextImage_v2:
 
     @classmethod
     def INPUT_TYPES(self):
-        (_, FONT_DICT) = get_resource_dir()
-        FONT_LIST = list(FONT_DICT.keys())
+        FONT_LIST = folder_paths.get_filename_list("fonts")
 
         layout_list = ['horizontal', 'vertical']
         random_seed = int(time.time())
@@ -47,9 +46,6 @@ class TextImage_v2:
                     size_as=None
                     ):
 
-
-        (_, FONT_DICT) = get_resource_dir()
-        FONT_LIST = list(FONT_DICT.keys())
 
         if size_as is not None:
             width, height = tensor2pil(size_as).size
@@ -126,7 +122,7 @@ class TextImage_v2:
         draw = ImageDraw.Draw(_mask)
         for l in range(len(lines)):
             for c in range(len(lines[l])):
-                font_path = FONT_DICT.get(font_file)
+                font_path = font_file = folder_paths.get_full_path("fonts", font_file)
                 font_size = text_table[l][c].get('size')
                 font = ImageFont.truetype(font_path, font_size)
                 draw.text(text_table[l][c].get('axis'), text_table[l][c].get('char'), font=font, fill='white')

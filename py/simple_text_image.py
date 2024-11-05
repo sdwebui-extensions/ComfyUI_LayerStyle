@@ -13,8 +13,7 @@ class SimpleTextImage:
     @classmethod
     def INPUT_TYPES(self):
 
-        (_, FONT_DICT) = get_resource_dir()
-        FONT_LIST = list(FONT_DICT.keys())
+        FONT_LIST = folder_paths.get_filename_list("fonts")
 
         return {
             "required": {
@@ -49,9 +48,6 @@ class SimpleTextImage:
                           width, height, size_as=None
                           ):
 
-        (_, FONT_DICT) = get_resource_dir()
-        FONT_LIST = list(FONT_DICT.keys())
-
         ret_images = []
         ret_masks = []
         if size_as is not None:
@@ -62,7 +58,7 @@ class SimpleTextImage:
             else:
                 size_as_image = copy.deepcopy(size_as)
             width, height = tensor2pil(size_as_image).size
-        font_path = FONT_DICT.get(font_file)
+        font_path = folder_paths.get_full_path("fonts", font_file)
         (_, top, _, _) = ImageFont.truetype(font=font_path, size=font_size, encoding='unic').getbbox(text)
         font = cast(ImageFont.FreeTypeFont, ImageFont.truetype(font_path, font_size))
         if char_per_line == 0:

@@ -2286,6 +2286,8 @@ def collect_files(root_dir:str, suffixes:tuple, default_dir:str=""):
     return result
 
 
+folder_paths.add_model_folder_path("fonts", "/code/ComfyUI/custom_nodes/ComfyUI_LayerStyle/font")
+folder_paths.add_model_folder_path("luts", "/code/ComfyUI/custom_nodes/ComfyUI_LayerStyle/lut")
 def get_resource_dir() -> list:
     default_lut_dir = []
     default_lut_dir.append(os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'lut'))
@@ -2324,15 +2326,8 @@ def get_resource_dir() -> list:
 
     return (LUT_DICT, FONT_DICT)
 
-(LUT_DICT, FONT_DICT) = get_resource_dir()
-for user_font in glob.iglob(os.path.join(folder_paths.models_dir, 'fonts/*.ttf')):
-    _, __filename =  os.path.split(user_font)
-    FONT_DICT[__filename] = user_font
-for user_font in glob.iglob(os.path.join(folder_paths.models_dir, 'fonts/*.otf')):
-    _, __filename =  os.path.split(user_font)
-    FONT_DICT[__filename] = user_font
-FONT_LIST = list(FONT_DICT.keys())
-LUT_LIST = list(LUT_DICT.keys())
+FONT_LIST = folder_paths.get_filename_list("fonts")
+LUT_LIST = folder_paths.get_filename_list("luts")
 
 # def get_models_dir() -> dict:
 #     models_dir_ini_file = os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), "models_dir.ini")
@@ -2373,10 +2368,11 @@ def draw_bounding_boxes(image: Image, bboxes: list, color: str = "#FF0000", line
     Draw bounding boxes on the image using the coordinates provided in the bboxes dictionary.
     """
 
-    (_, FONT_DICT) = get_resource_dir()
+    font_name = folder_paths.get_filename_list("fonts")[0]
+    font_path = folder_paths.get_full_path("fonts", font_name)
 
     font_size = 25
-    font = ImageFont.truetype(list(FONT_DICT.items())[0][1], font_size)
+    font = ImageFont.truetype(font_path, font_size)
 
     if len(bboxes) > 0:
         draw = ImageDraw.Draw(image)
@@ -2402,9 +2398,10 @@ def draw_bbox(image: Image, bbox: tuple, color: str = "#FF0000", line_width: int
     Draw bounding boxes on the image using the coordinates provided in the bboxes dictionary.
     """
 
-    (_, FONT_DICT) = get_resource_dir()
+    font_name = folder_paths.get_filename_list("fonts")[0]
+    font_path = folder_paths.get_full_path("fonts", font_name)
 
-    font = ImageFont.truetype(list(FONT_DICT.items())[0][1], font_size)
+    font = ImageFont.truetype(font_path, font_size)
 
     draw = ImageDraw.Draw(image)
     width, height = image.size

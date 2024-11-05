@@ -5,7 +5,7 @@ import folder_paths
 # import node_helpers
 from nodes import LoadImage
 from PIL import Image,ImageOps,ImageSequence,ImageDraw,ImageFont
-from .imagefunc import pil2tensor, log, generate_text_image, get_resource_dir
+from .imagefunc import pil2tensor, log, generate_text_image
 
 
 class LoadPSD(LoadImage):
@@ -38,7 +38,6 @@ class LoadPSD(LoadImage):
         from psd_tools import PSDImage
         from psd_tools.api.layers import Layer
 
-        (LUT_DICT, FONT_DICT) = get_resource_dir()
 
         NODE_NAME = 'LoadPSD'
         number_of_layers = 1
@@ -81,7 +80,7 @@ class LoadPSD(LoadImage):
                         log(f"{NODE_NAME} -> Layer {i} : {layer.name} found.")
 
             text = "Layer Not Found!"
-            font_file = list(FONT_DICT.values())[0]
+            font_file = folder_paths.get_full_path("fonts", folder_paths.get_filename_list("fonts")[0])
             empty_layer_image = generate_text_image(flat_image.width, flat_image.height, text, font_file, font_color="#F01000")
             if layer_image == []:
                 if layer_index == -1:
