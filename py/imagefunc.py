@@ -2286,8 +2286,6 @@ def collect_files(root_dir:str, suffixes:tuple, default_dir:str=""):
     return result
 
 
-folder_paths.add_model_folder_path("fonts", "/code/ComfyUI/custom_nodes/ComfyUI_LayerStyle/font")
-folder_paths.add_model_folder_path("luts", "/code/ComfyUI/custom_nodes/ComfyUI_LayerStyle/lut")
 def get_resource_dir() -> list:
     default_lut_dir = []
     default_lut_dir.append(os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(__file__))), 'lut'))

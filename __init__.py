@@ -6,6 +6,7 @@ import __main__
 import filecmp
 import shutil
 import time
+import folder_paths
 
 NODE_CLASS_MAPPINGS = {}
 NODE_DISPLAY_NAME_MAPPINGS = {}
@@ -54,6 +55,9 @@ def get_ext_dir(subpath=None, mkdir=False):
     if mkdir and not os.path.exists(dir):
         os.makedirs(dir)
     return dir
+
+folder_paths.add_model_folder_path("fonts", "/code/ComfyUI/custom_nodes/ComfyUI_LayerStyle/font")
+folder_paths.add_model_folder_path("luts", "/code/ComfyUI/custom_nodes/ComfyUI_LayerStyle/lut")
 
 py = get_ext_dir("py")
 files = os.listdir(py)

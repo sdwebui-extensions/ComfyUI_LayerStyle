@@ -1,4 +1,5 @@
 from .imagefunc import *
+import folder_paths
 
 NODE_NAME = 'TextImage'
 any = AnyType("*")
