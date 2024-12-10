@@ -5,10 +5,10 @@ from .imagefunc import num_round_up_to_multiple, draw_rect
 
 
 
-class CropByMaskV2:
+class CropByMaskV3:
 
     def __init__(self):
-        self.NODE_NAME = 'CropByMask V2'
+        self.NODE_NAME = 'CropByMask V3'
 
     @classmethod
     def INPUT_TYPES(self):
@@ -33,10 +33,10 @@ class CropByMaskV2:
 
     RETURN_TYPES = ("IMAGE", "MASK", "BOX", "IMAGE",)
     RETURN_NAMES = ("croped_image", "croped_mask", "crop_box", "box_preview")
-    FUNCTION = 'crop_by_mask_v2'
+    FUNCTION = 'crop_by_mask_v3'
     CATEGORY = '😺dzNodes/LayerUtility'
 
-    def crop_by_mask_v2(self, image, mask, invert_mask, detect,
+    def crop_by_mask_v3(self, image, mask, invert_mask, detect,
                      top_reserve, bottom_reserve,
                      left_reserve, right_reserve, round_to_multiple,
                      crop_box=None
@@ -60,7 +60,7 @@ class CropByMaskV2:
         l_masks.append(tensor2pil(torch.unsqueeze(mask, 0)).convert('L'))
 
         _mask = mask2image(mask)
-        preview_image = tensor2pil(mask).convert('RGB')
+        preview_image = tensor2pil(mask).convert('RGBA')
         if crop_box is None:
             bluredmask = gaussian_blur(_mask, 20).convert('L')
             x = 0
@@ -74,7 +74,7 @@ class CropByMaskV2:
             else:
                 (x, y, w, h) = mask_area(_mask)
 
-            canvas_width, canvas_height = tensor2pil(torch.unsqueeze(image[0], 0)).convert('RGB').size
+            canvas_width, canvas_height = tensor2pil(torch.unsqueeze(image[0], 0)).convert('RGBA').size
             x1 = x - left_reserve if x - left_reserve > 0 else 0
             y1 = y - top_reserve if y - top_reserve > 0 else 0
             x2 = x + w + right_reserve if x + w + right_reserve < canvas_width else canvas_width
@@ -98,7 +98,7 @@ class CropByMaskV2:
                                   line_color="#00F000",
                                   line_width=(crop_box[2] - crop_box[0] + crop_box[3] - crop_box[1]) // 200)
         for i in range(len(l_images)):
-            _canvas = tensor2pil(l_images[i]).convert('RGB')
+            _canvas = tensor2pil(l_images[i]).convert('RGBA')
             _mask = l_masks[0]
             ret_images.append(pil2tensor(_canvas.crop(crop_box)))
             ret_masks.append(image2mask(_mask.crop(crop_box)))
@@ -108,9 +108,9 @@ class CropByMaskV2:
 
 
 NODE_CLASS_MAPPINGS = {
-    "LayerUtility: CropByMask V2": CropByMaskV2
+    "LayerUtility: CropByMask V3": CropByMaskV3
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "LayerUtility: CropByMask V2": "LayerUtility: CropByMask V2"
+    "LayerUtility: CropByMask V3": "LayerUtility: CropByMask V3"
 }

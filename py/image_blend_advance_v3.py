@@ -5,10 +5,11 @@ from .imagefunc import log, pil2tensor, tensor2pil, image2mask, mask2image, chop
 
 
 
-class ImageBlendAdvanceV2:
+
+class ImageBlendAdvanceV3:
 
     def __init__(self):
-        self.NODE_NAME = 'ImageBlendAdvanceV2'
+        self.NODE_NAME = 'ImageBlendAdvanceV3'
 
     @classmethod
     def INPUT_TYPES(self):
@@ -17,7 +18,6 @@ class ImageBlendAdvanceV2:
         method_mode = ['lanczos', 'bicubic', 'hamming', 'bilinear', 'box', 'nearest']
         return {
             "required": {
-                "background_image": ("IMAGE", ),  #
                 "layer_image": ("IMAGE",),  #
                 "invert_mask": ("BOOLEAN", {"default": True}),  # 反转mask
                 "blend_mode": (chop_mode_v2,),  # 混合模式
@@ -32,6 +32,7 @@ class ImageBlendAdvanceV2:
                 "anti_aliasing": ("INT", {"default": 0, "min": 0, "max": 16, "step": 1}),
             },
             "optional": {
+                "background_image": ("IMAGE", ),  #
                 "layer_mask": ("MASK",),  #
             }
         }
@@ -41,13 +42,18 @@ class ImageBlendAdvanceV2:
     FUNCTION = 'image_blend_advance_v2'
     CATEGORY = '😺dzNodes/LayerUtility'
 
-    def image_blend_advance_v2(self, background_image, layer_image,
-                            invert_mask, blend_mode, opacity,
-                            x_percent, y_percent,
-                            mirror, scale, aspect_ratio, rotate,
-                            transform_method, anti_aliasing,
-                            layer_mask=None
+    def image_blend_advance_v2(self, layer_image, invert_mask, blend_mode, opacity,
+                            x_percent, y_percent, mirror, scale, aspect_ratio, rotate,
+                            transform_method, anti_aliasing, background_image=None, layer_mask=None
                             ):
+
+        # If background image is empty, create transparent background image for each layer image
+        if background_image == None:
+            background_image = []
+            for l in layer_image:
+                m = tensor2pil(l)
+                background_image.append(pil2tensor(Image.new('RGBA', (m.width, m.height), (0, 0, 0, 0))))
+
         b_images = []
         l_images = []
         l_masks = []
@@ -77,7 +83,7 @@ class ImageBlendAdvanceV2:
             layer_image = l_images[i] if i < len(l_images) else l_images[-1]
             _mask = l_masks[i] if i < len(l_masks) else l_masks[-1]
             # preprocess
-            _canvas = tensor2pil(background_image).convert('RGB')
+            _canvas = tensor2pil(background_image).convert('RGBA')
             _layer = tensor2pil(layer_image)
 
             if _mask.size != _layer.size:
@@ -86,7 +92,7 @@ class ImageBlendAdvanceV2:
 
             orig_layer_width = _layer.width
             orig_layer_height = _layer.height
-            _mask = _mask.convert("RGB")
+            _mask = _mask.convert("RGBA")
 
             target_layer_width = int(orig_layer_width * scale)
             target_layer_height = int(orig_layer_height * scale * aspect_ratio)
@@ -111,7 +117,7 @@ class ImageBlendAdvanceV2:
 
             # composit layer
             _comp = copy.copy(_canvas)
-            _compmask = Image.new("RGB", _comp.size, color='black')
+            _compmask = Image.new("RGBA", _comp.size, color='black')
             _comp.paste(_layer, (x, y))
             _compmask.paste(_mask, (x, y))
             _compmask = _compmask.convert('L')
@@ -127,9 +133,9 @@ class ImageBlendAdvanceV2:
         return (torch.cat(ret_images, dim=0), torch.cat(ret_masks, dim=0),)
 
 NODE_CLASS_MAPPINGS = {
-    "LayerUtility: ImageBlendAdvance V2": ImageBlendAdvanceV2
+    "LayerUtility: ImageBlendAdvance V3": ImageBlendAdvanceV3
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "LayerUtility: ImageBlendAdvance V2": "LayerUtility: ImageBlendAdvance V2"
+    "LayerUtility: ImageBlendAdvance V3": "LayerUtility: ImageBlendAdvance V3"
 }
