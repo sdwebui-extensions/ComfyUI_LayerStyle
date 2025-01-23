@@ -66,14 +66,15 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 
 ```
 ..\..\python\python.exe -s -m pip install -r requirements.txt
-.\repair_dependency.bat
+.\repair_dependency_aki.bat
 ```
 * 重新打开ComfyUI。
 
 ### 下载模型
 国内用户请从[百度网盘](https://pan.baidu.com/s/1T_uXMX3OKIWOJLPuLijrgA?pwd=1yye), 海外用户请从[huggingface](https://huggingface.co/chflame163/ComfyUI_LayerStyle/tree/main), 
 下载全部模型文件并复制到```ComfyUI\models```文件夹。这个链接提供了本插件需要的所有的模型文件。
-或者按各个节点的说明下载模型文件。
+或者按各个节点的说明下载模型文件。     
+以Ultra命名的节点使用vitmatte模型，请下载[vitmatte模型](https://huggingface.co/hustvl/vitmatte-small-composition-1k/tree/main)到```ComfyUI/models/vitmatte```文件夹，上面的下载链接也包括了这个模型。
 
 ## 常见问题
 如果节点不能正常加载，或者使用中出现错误，请在ComfyUI终端窗口查看报错信息。以下是常见的错误及解决方法。
@@ -127,6 +128,14 @@ os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 ## 更新说明
 <font size="4">**如果本插件更新后出现依赖包错误，请双击运行插件目录下的```install_requirements.bat```(官方便携包)，或 ```install_requirements_aki.bat```(秋叶整合包) 重新安装依赖包。
 
+* 添加 [ChoiceTextPreset](#ChoiceTextPreset) 和 [TextPreseter](#TextPreseter) 节点，用于预设文本和选择预设文本输出。
+* [StringCondition](#StringCondition) 节点增加比较字符串是否相同功能。
+* 添加 [NameToColor](#NameToColor)节点，根据颜色名称输出颜色。
+* 添加 [ImageMaskScaleAsV2](#ImageMaskScaleAsV2)节点，在原节点基础上增加背景颜色设置。
+* 添加 [RoundedRectangle](#RoundedRectangle) 节点，用于创建圆角矩形及遮罩。
+* 添加 [AnyRerouter](#AnyRerouter) 节点，用于将任意类型数据中转转发。
+* 添加 [ICMask](#ICMask) 和 [ICMaskCropBack](#ICMaskCropBack) 节点，用于生成一致性上下文图片和遮罩，以及自动回裁。代码来自[lrzjason/Comfyui-In-Context-Lora-Utils](https://github.com/lrzjason/Comfyui-In-Context-Lora-Utils) 感谢原作者@小志Jason
+* 添加 [GetMainColorsV2](#GetMainColorsV2) 节点，增加按颜色面积排序，并在预览图中输出色值和比例。这部分代码由@HL完善，感谢。
 * 优化依赖包。优化部分图形算法。
 * 分拆部分依赖易出问题的节点至[ComfyUI_LayerStyle_Advance](#https://github.com/chflame163/ComfyUI_LayerStyle_Advance)仓库。包括下列节点：    
 LayerMask: BiRefNetUltra, LayerMask: BiRefNetUltraV2, LayerMask: LoadBiRefNetModel, LayerMask: LoadBiRefNetModelV2,    
@@ -144,6 +153,7 @@ LayerMask: SegmentAnythingUltra, LayerMask: SegmentAnythingUltra V2, LayerMask: 
 LayerUtility: UserPromptGeneratorTxt2ImgPrompt, LayerUtility: UserPromptGeneratorTxt2ImgPromptWithReference, LayerUtility: UserPromptGeneratorReplaceWord,    
 LayerUtility: AddBlindWaterMark, LayerUtility: ShowBlindWaterMark, LayerMask: YoloV8Detect
 
+* 合并[alexisrolland](https://github.com/alexisrolland) 提交的分支，添加Image Blend Advanced v3 和 Drop Shadow v3 节点，支持透明背景。
 * 添加[BenUltra](#BenUltra) 和 [LoadBenModel](#LoadBenModel)节点。这两个节点是[PramaLLC/BEN](https://huggingface.co/PramaLLC/BEN) 项目在ComfyUI中的实现。    
 从 [huggingface](https://huggingface.co/PramaLLC/BEN/tree/main) 或 [百度网盘](https://pan.baidu.com/s/17mdBxfBl_R97mtNHuiHsxQ?pwd=2jn3)下载```BEN_Base.pth``` 和 ```config.json``` 两个文件并复制到 ```ComfyUI/models/BEN```文件夹。
 * 合并[jimlee2048](https://github.com/jimlee2048)提交的PR, 添加[LoadBiRefNetModelV2](#LoadBiRefNetModelV2) 节点，支持加载RMBG 2.0模型。    
@@ -782,6 +792,13 @@ ImageScaleRestore的V2升级版。
 * width: 输出图片的宽。
 * height: 输出图片的高。
 
+### <a id="table1">ImageMaskScaleAsV2</a>
+ImageMaskScaleAs的升级版，在原节点基础上增加背景颜色设置。
+![image](image/image_mask_scale_as_v2_example.jpg)    
+
+新增选项:   
+![image](image/image_mask_scale_as_v2_node.jpg)    
+* background_color: 扩展背景颜色。
 
 ### <a id="table1">ImageScaleByAspectRatio</a>
 将图像或遮罩按宽高比缩放。可设置将缩放后的尺寸按8或者16的倍数取整，可按长边尺寸缩放。
@@ -815,6 +832,35 @@ ImageScaleByAspectRatio的V2升级版
 * scale_to_side: 允许按长边、短边、宽度、高度或总像素指定尺寸缩放。
 * scale_to_length: 这里的数值作为scale_to_side指定边的长度, 或者总像素数量(kilo pixels)。
 * background_color<sup>4</sup>: 背景色。
+
+### <a id="table1">ICMask</a>
+用于生成一致性上下文图片和遮罩。代码来自[lrzjason/Comfyui-In-Context-Lora-Utils](https://github.com/lrzjason/Comfyui-In-Context-Lora-Utils) 感谢原作者@小志Jason
+![image](image/icmask_example.jpg)
+
+节点选项说明:   
+![image](image/icmask_node.jpg)    
+
+* first_image: 用作上下文参考的图像。
+* first_mask: 可选输入，上下文参考图像的遮罩。
+* second_image: 用于重绘的图像。
+* second_mask: 用于重绘的图像的遮罩。
+* patch_mode: 拼接模式，有三种模式：auto、patch_right 和 patch_bottom。patch_right为左右拼接，patch_bottom为上下拼接，auto为自动模式。
+* output_length: 输出图像的长边尺寸。
+* patch_color: 填充颜色。
+
+输出:
+* image: 输出图像。
+* mask: 输出遮罩。
+* icmask_data: 图像的拼接信息，用于后续节点进行自动裁切。
+
+### <a id="table1">ICMaskCropBack</a>
+对ICMask生成的图像推理输出进行裁切。
+
+节点选项说明:   
+![image](image/icmask_crop_back_node.jpg)    
+
+* image: 图像输入。
+* icmask_data: 从ICMask输出的拼接信息。
 
 
 ### <a id="table1">VQAPrompt</a>
@@ -973,6 +1019,12 @@ ImageScaleByAspectRatio的V2升级版
 * preview_image: 5个主色预览图片。
 * color_1~color_5: 色值输出。输出格式为HEX格式的RGB字符串。
 
+### <a id="table1">GetMainColorsV2</a>
+在[GetMainColors](#GetMainColors)节点基础上增加按颜色面积排序，并在预览图片中显示色值和颜色面积。
+这部分代码由@HL完善，感谢。
+![image](image/get_main_color_v2_example.jpg)
+
+
 ### <a id="table1">ColorName</a>
 根据色值输出调色盘里最近似的颜色名称。
 ![image](image/color_name_example.jpg)
@@ -980,10 +1032,34 @@ ImageScaleByAspectRatio的V2升级版
 节点选项:
 ![image](image/color_name_node.jpg)    
 * color: 颜色色值输入，格式为HEX格式的RGB字符串。
-* palette: 调色板。 ```xkcd```包括了949种颜色， ```css3```包括了147种颜色, ```html4```包括了16种颜色。
+* palette: 调色板。 有xkcd、wiki_color、flux_sdxl、css4、css3以及html4多种色彩映射表可选。
 
 输出:
 * color_name: 颜色名称，格式为字符串。
+
+### <a id="table1">NameToColor</a>
+从颜色名称输出彩色图片以及色值。
+![image](image/name_to_color_example.jpg)
+
+节点选项:
+![image](image/name_to_color_node.jpg)
+* size_as<sup>*</sup>: 此处输入图像或遮罩，将按照其尺寸生成输出图像。注意，此输入优先级高于其他的尺寸设置。
+* color_name: 颜色名称。
+* palette: 调色板。 有xkcd、wiki_color、flux_sdxl、css4、css3以及html4多种色彩映射表可选。
+* in_palette_only: 是否只输出调色盘内的颜色。如果设置为True，仅在当前调色盘内搜索，如果没有匹配名称，输出default_color。
+如果设置为False，在全部调色盘搜索，如果在所有调色盘中都没有匹配名称，则输出一个最近似名称的颜色。
+* default_color: 默认颜色。如果没有搜索到匹配名称，则输出该颜色。
+* size<sup>**</sup>: 尺寸预设。预设可以用户自定义。如果有size_as输入，此处选项将被忽略。
+* custom_width: 图像宽度。当size设置为"custom"时有效。如果有size_as输入，此处选项将被忽略。
+* custom_height: 图像高度。当size设置为"custom"时有效。如果有size_as输入，此处选项将被忽略。
+
+<sup>*</sup>仅限输入image和mask, 如果强制接入其他类型输入，将导致节点错误。
+<sup>**</sup>预设尺寸在custom_size.ini中定义，这个文件位于插件根目录下。用文本编辑软件打开，编辑自定义尺寸。每行表示一个尺寸，第一个数值是宽度，第二个是高度，中间用小写的"x"分隔。为避免错误请不要输入多余的字符。
+
+输出:
+* image: 彩色图片。
+* color: 色值，格式为HEX格式的RGB字符串。
+
 
 ### <a id="table1">ExtendCanvas</a>
 扩展画布。
@@ -1093,6 +1169,27 @@ GradientImage的V2升级版。
 <sup>**</sup>预设尺寸在```custom_size.ini```中定义，这个文件位于插件根目录下, 默认名字是```custom_size.ini.example```, 初次使用这个文件需将文件后缀改为.ini。用文本编辑软件打开，编辑自定义尺寸。每行表示一个尺寸，第一个数值是宽度，第二个是高度，中间用小写的"x"分隔。为避免错误请不要输入多余的字符。
 
 
+### <a id="table1">RoundedRectangle</a>
+![image](image/rounded_rectangle_example.jpg)    
+生成圆角矩形及遮罩。
+
+![image](image/rounded_rectangle_node.jpg)    
+节点选项说明:
+* image: 图片输入。
+* object_mask: 可选输入。可由此遮罩生成圆角矩形区域。如果```crop_box```有输入，则此选项将被忽略。
+* crop_box: 可选输入。可由此裁剪区域生成圆角矩形区域。
+* rounded_rect_radius: 圆角矩形半径。范围0-100, 数值越大圆角越明显。
+* anti_aliasing: 抗锯齿，范围从0-16，数值越大，锯齿越不明显。过高的数值将显著降低节点的处理速度。
+* top: 圆角矩形顶部边距，为图片高度的百分比，允许设置负值。如果有crop_box或者object_mask输入，此选项将被忽略。
+* bottom: 圆角矩形底部边距，为图片高度的百分比，允许设置负值。如果有crop_box或者object_mask输入，此选项将被忽略。
+* left: 圆角矩形左侧边距，为图片宽度的百分比，允许设置负值。如果有crop_box或者object_mask输入，此选项将被忽略。
+* right: 圆角矩形右侧边距，为图片宽度的百分比，允许设置负值。如果有crop_box或者object_mask输入，此选项将被忽略。
+* detect: 当object_mask输入时，检测遮罩区域的方法。```min_bounding_rect```是大块形状最小外接矩形, ```max_inscribed_rect```是大块形状最大内接矩形, ```mask_area```是遮罩像素有效区域。
+* obj_ext_top: 当object_mask或crop_box输入时，圆角矩形区域顶部外扩范围，为区域高度的百分比，允许设置负值。
+* obj_ext_bottom: 当object_mask或crop_box输入时，圆角矩形区域底部外扩范围，为区域高度的百分比，允许设置负值。
+* obj_ext_left: 当object_mask或crop_box输入时，圆角矩形区域左侧外扩范围，为区域宽度的百分比，允许设置负值。
+* obj_ext_right: 当object_mask或crop_box输入时，圆角矩形区域右侧外扩范围，为区域宽度的百分比，允许设置负值。
+
 
 ### <a id="table1">SimpleTextImage</a>
 ![image](image/simple_text_image_example.jpg)    
@@ -1121,7 +1218,6 @@ GradientImage的V2升级版。
 支持定义多个文件夹，之间用逗号，分号或者空格分隔。
 文件夹里面所有的.ttf和.otf文件将在ComfyUI初始化时被收集并显示在节点的列表中。
 如果ini中设定的文件夹无效，将启用插件自带的font文件夹。
-
 
 ### <a id="table1">TextImage</a>
 ![image](image/text_image_example.jpg)    
@@ -1213,6 +1309,10 @@ GradientImage的V2升级版。
 * height: 图像高度。
 * original_size: 图像的原始大小数据，用于后续节点进行恢复。
 
+### <a id="table1">AnyRerouter</a>
+![image](image/any_rerouter_node.jpg)    
+用于将任意类型数据中转转发，这个节点允许任意类型的输入。
+
 ### <a id="table1">ImageHub</a>
 从多路输入图片和遮罩中切换其中一组输出，支持9组输入。所有的输入项都是可选项。如果一组输入中只有image或者只有mask, 缺失项将输出为None。
 ![image](image/image_hub_example.jpg)    
@@ -1234,6 +1334,32 @@ GradientImage的V2升级版。
 * select: 选择输出的图片或遮罩在批量的索引值，0为第一张。可以输入多个值，中间用任意非数字字符分隔，包括不仅限于逗号，句号，分号，空格或者字母，甚至中文。
 注意:如果数值超出批量，将输出最后一张。如果没有对应的输入，将输出一个空的64x64图片或64x64黑色遮罩。
 
+
+### <a id="table1">ChoiceTextPreset</a>
+从预设文本字典选择输出。
+![image](image/choice_text_preset_example.jpg)    
+
+节点选项说明:  
+![image](image/chioce_text_preset_node.jpg)    
+* text_preset: 预设的文本。由[TextPreseter](#TextPreseter) 节点设置输出。
+* choice_title: 选择预设标题，将输出此标题对应的文本内容。
+* random_choice: 是否随机选择预设。
+* default: 默认输出文本，0对应第一段，依次类推。注意此数值超出预设文本段落长度将导致错误。
+* seed: 随机选择时使用的随机种子。
+* control_after_generate: 是否在每次运行时改变种子。
+
+输出:
+* title: 文本段落标题。
+* content: 文本段落内容。
+
+### <a id="table1">TextPreseter</a>
+预设文本字典，每个节点设置一段文本，支持多个节点串联。    
+
+节点选项说明:  
+![image](image/text_preseter_node.jpg)    
+* text_preset: 预设的文本，可选输入。多个预设文本节点可以串联。
+* title: 文本段落标题。
+* content: 文本段落内容。
 
 ### <a id="table1">TextJoin</a>
 ![image](image/text_join_example.jpg)    
@@ -1336,7 +1462,7 @@ BooleanOperator的升级版，增加了节点内数值输入，增加了大于�
 节点选项说明:    
 ![image](image/string_condition_node.jpg)  
 * text: 输入的文本。
-* condition: 判断条件。```include```判断是否包含子字符串，```exclude```判断是否不包含子字符串。
+* condition: 判断条件。```include```判断是否包含子字符串，```exclude```判断是否不包含子字符串, ```equal```判断是否与子字符串相等。
 * sub_string: 子字符串文本。
 
 

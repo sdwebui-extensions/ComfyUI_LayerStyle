@@ -56,14 +56,14 @@ Some JSON workflow files in the    ```workflow``` directory, That's examples of 
   git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
   ```
 
-* Or download the zip file and extracted, copy the resulting folder to ```ComfyUI\custom_ Nodes```    
+* Or download the zip file and extracted, copy the resulting folder to ```ComfyUI\custom_nodes```    
 
 ### Install dependency packages
 
 * for ComfyUI official portable package, double-click the ```install_requirements.bat``` in the plugin directory, for Aki ComfyUI package double-click on the ```install_requirements_aki.bat``` in the plugin directory, and wait for the installation to complete.
 
 * Or install dependency packages, open the cmd window in the ComfyUI_LayerStyle plugin directory like 
-  ```ComfyUI\custom_ Nodes\ComfyUI_LayerStyle``` and enter the following command,
+  ```ComfyUI\custom_nodes\ComfyUI_LayerStyle``` and enter the following command,
 
 &emsp;&emsp;for ComfyUI official portable package, type:
 
@@ -76,7 +76,7 @@ Some JSON workflow files in the    ```workflow``` directory, That's examples of 
 
 ```
 ..\..\python\python.exe -s -m pip install -r requirements.txt
-.\repair_dependency.bat
+.\repair_dependency_aki.bat
 ```
 
 * Restart ComfyUI.
@@ -85,7 +85,8 @@ Some JSON workflow files in the    ```workflow``` directory, That's examples of 
 
 Chinese domestic users from  [BaiduNetdisk](https://pan.baidu.com/s/1T_uXMX3OKIWOJLPuLijrgA?pwd=1yye)  and other users from [huggingface.co/chflame163/ComfyUI_LayerStyle](https://huggingface.co/chflame163/ComfyUI_LayerStyle/tree/main)  
 download all files and copy them to ```ComfyUI\models``` folder. This link provides all the model files required for this plugin.
-Or download the model file according to the instructions of each node.
+Or download the model file according to the instructions of each node.     
+Some nodes named "Ultra" will use the vitmatte model, download the [vitmatte model](https://huggingface.co/hustvl/vitmatte-small-composition-1k/tree/main) and copy to ```ComfyUI/models/vitmatte``` folder, it is also included in the download link above. 
 
 ## Common Issues
 
@@ -146,7 +147,14 @@ When this error has occurred, please check the network environment.
 
 <font size="4">**If the dependency package error after updating,  please double clicking ```repair_dependency.bat``` (for Official ComfyUI Protable) or  ```repair_dependency_aki.bat``` (for ComfyUI-aki-v1.x) in the plugin folder to reinstall the dependency packages. </font><br />    
 
-
+* Commit [ChoiceTextPreset](#ChoiceTextPreset) and [TextPreseter](#TextPreseter) nodes, used for preset text and selecting preset text output.
+* [StringCondition](#StringCondition) add the option of comparing strings to determine if they are the same.
+* Commit [NameToColor](#NameToColor) node, Output colors based on their names.
+* Commit [ImageMaskScaleAsV2](#ImageMaskScaleAsV2) node, Add background color settings on the basis of the original node.
+* Commit [RoundedRectangle](#RoundedRectangle) node, Used to create rounded rectangle and mask.
+* Commit [AnyRerouter](#AnyRerouter) node, Used for reroute any type of data.
+* Commit [ICMask](#ICMask) and [ICMaskCropBack](#ICMaskCropBack) nodes, Used for generating In-Context image and mask, and automatic crop back. The code is from [lrzjason/Comfyui-In-Context-Lora-Utils](https://github.com/lrzjason/Comfyui-In-Context-Lora-Utils) , Thanks to the original author @小志Jason.
+* Commit [GetMainColorsV2](#GetMainColorsV2) node, add sorting by color area and output color values and proportions in the preview image. This part of the code was improved by @ HL, thanks.
 * Optimize dependency packages. Optimize some algorithms.
 * Split some nodes of the dependencies that are prone to problems into [ComfyUI_LayerStyle_Advance](#https://github.com/chflame163/ComfyUI_LayerStyle_Advance) repository. Including:
 LayerMask: BiRefNetUltra, LayerMask: BiRefNetUltraV2, LayerMask: LoadBiRefNetModel, LayerMask: LoadBiRefNetModelV2,    
@@ -164,7 +172,7 @@ LayerMask: SegmentAnythingUltra, LayerMask: SegmentAnythingUltra V2, LayerMask: 
 LayerUtility: UserPromptGeneratorTxt2ImgPrompt, LayerUtility: UserPromptGeneratorTxt2ImgPromptWithReference, LayerUtility: UserPromptGeneratorReplaceWord,    
 LayerUtility: AddBlindWaterMark, LayerUtility: ShowBlindWaterMark, LayerMask: YoloV8Detect
 
-
+* Merge the PR submitted by [alexisrolland](https://github.com/alexisrolland) , commit the ```Image Blend Advanced v3``` and ```Drop Shadow v3``` nodes, support transparent background.
 * Commit [BenUltra](#BenUltra) and [LoadBenModel](#LoadBenModel) nodes. These two nodes are the implementation of [PramaLLC/BEN](https://huggingface.co/PramaLLC/BEN) project in ComfyUI.   
 Download the ```BEN_Base.pth``` and ```config.json``` from [huggingface](https://huggingface.co/PramaLLC/BEN/tree/main) or [BaiduNetdisk](https://pan.baidu.com/s/17mdBxfBl_R97mtNHuiHsxQ?pwd=2jn3) and copy to ```ComfyUI/models/BEN``` folder.
 * Merge the PR submitted by [jimlee2048](https://github.com/jimlee2048), add the LoadBiRefNetModelV2 node, and support loading RMBG 2.0 models.       
@@ -877,6 +885,15 @@ Outputs:
 * width: The output image's width.
 * height: The output image's height.
 
+### <a id="table1">ImageMaskScaleAsV2</a>
+The upgraded version of ImageMaskScaleAs adds background color settings on top of the original nodes.
+![image](image/image_mask_scale_as_v2_example.jpg)    
+
+New Option:   
+![image](image/image_mask_scale_as_v2_node.jpg)    
+* background_color: Expand background color.
+
+
 ### <a id="table1">ImageScaleByAspectRatio</a>
 
 Scale the image or mask by aspect ratio. the scaled size can be rounded to a multiple of 8 or 16, and can be scaled to the long side size.
@@ -916,6 +933,35 @@ The following changes have been made based on ImageScaleByAspectRatio:
 * scale_to_side: Allow scaling by specified dimensions for long, short, width, height, or total pixels.
 * scale_to_length: The numerical value here serves as the length of the specified edge or the total pixels (kilo pixels) for scale_to_side.
 * background_color<sup>4</sup>: The color of the background.
+
+### <a id="table1">ICMask</a>
+Used for generating In-Context image and mask. The code is from [lrzjason/Comfyui-In-Context-Lora-Utils](https://github.com/lrzjason/Comfyui-In-Context-Lora-Utils) , Thanks to the original author @小志Jason.
+![image](image/icmask_example.jpg)
+
+Node Options:   
+![image](image/icmask_node.jpg)    
+
+* first_image: Images used as contextual references.
+* first_mask: Optional input, context reference image mask.
+* second_image: Used for redrawing images.
+* second_mask: Mask used for redrawing images.
+* patch_mode: There are three types of splicing modes: auto、patch_right and patch_bottom.
+* output_length: Output the long side size of the image.
+* patch_color: Fill color.
+
+Outputs:
+* image: The output image.
+* mask: The output mask.
+* icmask_data: The stitching information of the image is used for automatic cropping of subsequent nodes.
+
+### <a id="table1">ICMaskCropBack</a>
+Crop the image inference output generated by ICMask.
+
+Node Options:   
+![image](image/icmask_crop_back_node.jpg)    
+
+* image: The input image.
+* icmask_data: Splicing information output from ICMask node.
 
 
 ### <a id="table1">VQAPrompt</a>
@@ -1099,6 +1145,12 @@ Outputs:
 * preview_image: 5 main color preview images.
 * color_1~color_5: Color value output. Output an RGB string in HEX format.
 
+### <a id="table1">GetMainColorsV2</a>
+Add sorting by color area to the [GetMainColors](#GetMainColors) node and display color values and color areas in the preview image. 
+This part of the code was improved by @ HL, thanks.
+![image](image/get_main_color_v2_example.jpg)
+
+
 ### <a id="table1">ColorName</a>
 
 Output the most similar color name in the color palette based on the color value.
@@ -1108,11 +1160,35 @@ Node Options:
 ![image](image/color_name_node.jpg)    
 
 * color: Color value input, in HEX format RGB string format.
-* palette: Color palette. ```xkcd``` includes 949 colors, ```css3``` includes 147 colors, and ```html4``` includes 16 colors.
+* palette: Color palette. There are 6 color mapping tables available, including xkcd, wiki_color, flux_sdxl, css4, css3, and html4.
 
 Output:
 
 * color_name: Color name in string.
+
+### <a id="table1">NameToColor</a>
+Output color images and color values from color names.
+![image](image/name_to_color_example.jpg)
+
+Node Options:
+![image](image/name_to_color_node.jpg)
+* size_as<sup>*</sup>: Input image or mask here to generate image according to its size. Note that this input takes priority over other size settings.
+* color_name: The name of color describe.
+* palette: Color palette. There are 6 color mapping tables available, including xkcd, wiki_color, flux_sdxl, css4, css3, and html4.
+* in_palette_only: Set to only output colors from the color palette. If set to True, search only in the current color palette. If there is no matching name, output default_color.
+If set to False, search for all color palettes. If there is no matching name in all color palettes, output the color with the closest name.
+* default_color: Default color. If no matching name is found, output the color.
+* size<sup>**</sup>: Size preset. the preset can be customized by the user. if have size_as input, this option will be ignored.
+* custom_width: Image width. it valid when size is set to "custom". if have size_as input, this option will be ignored.
+* custom_height: Image height. it valid when size is set to "custom". if have size_as input, this option will be ignored.
+
+<sup>*</sup>Only limited to input images and masks. forcing the integration of other types of inputs will result in node errors.
+<sup>**</sup>The preset size is defined in ```custom_size.ini```, this file is located in the root directory of the plug-in, and the default name is ```custom_size.ini.example```. to use this file for the first time, you need to change the file suffix to ```.ini```. Open with text editing software. Each row represents a size, with the first value being width and the second being height, separated by a lowercase "x" in the middle. To avoid errors, please do not enter extra characters.
+
+输出:
+* image: The output color image.
+* color: Color value output, in HEX format RGB string format.
+
 
 ### <a id="table1">ExtendCanvas</a>
 
@@ -1235,6 +1311,27 @@ The following changes have been made based on GradientImage:
 
 <sup>*</sup>Only limited to input images and masks. forcing the integration of other types of inputs will result in node errors.
 <sup>**</sup>The preset size is defined in ```custom_size.ini```, this file is located in the root directory of the plug-in, and the default name is ```custom_size.ini.example```. to use this file for the first time, you need to change the file suffix to ```.ini```. Open with text editing software. Each row represents a size, with the first value being width and the second being height, separated by a lowercase "x" in the middle. To avoid errors, please do not enter extra characters.
+
+### <a id="table1">RoundedRectangle</a>
+![image](image/rounded_rectangle_example.jpg)    
+Generate rounded rectangles and masks.
+
+![image](image/rounded_rectangle_node.jpg)    
+Node Options:
+* image: The image to be processed.
+* object_mask: Optional input. This mask can generate rounded rectangular regions. If have input for ```crop-box```, this option will be ignored.
+* crop_box: Optional input. This can generate a rounded rectangular area by cropping the region.
+* rounded_rect_radius: Rounded rectangle radius. The range is 0-100, and the larger the value, the more pronounced the rounded corners.
+* anti_aliasing: Anti aliasing, ranging from 0-16, with larger values indicating less pronounced aliasing. Excessive values will significantly reduce the processing speed of nodes.
+* top: Top margin of the rounded rectangle is a percentage of the image height, and negative values are allowed. If there is crox_box or object_mask input, this option will be ignored.
+* bottom: Bottom margin of the rounded rectangle is a percentage of the image height, and negative values are allowed. If there is crox_box or object_mask input, this option will be ignored.
+* left: Left margin of the rounded rectangle is a percentage of the image width, and negative values are allowed. If there is crox_box or object_mask input, this option will be ignored.
+* right: Right margin of the rounded rectangle is a percentage of the image width, and negative values are allowed. If there is crox_box or object_mask input, this option will be ignored.
+* detect: The method of detecting mask regions when object_mask is input. ```min_bounding_rect``` is the minimum bounding rectangle of block shape, ```max_inscribed_rect``` is the maximum inscribed rectangle of block shape, and ```mask-area``` is the effective area for masking pixels.
+* obj_ext_top: When object_mask or crop-box is input, the top of the rounded rectangle area expands outward as a percentage of the area height, and negative values are allowed.
+* obj_ext_bottom: When object_mask or crop-box is input, the bottom of the rounded rectangle area expands outward as a percentage of the area height, and negative values are allowed.
+* obj_ext_left: When object_mask or crop-box is input, the left of the rounded rectangle area expands outward as a percentage of the area width, and negative values are allowed.
+* obj_ext_right: When object_mask or crop-box is input, the right of the rounded rectangle area expands outward as a percentage of the area width, and negative values are allowed.
 
 
 ### <a id="table1">SimpleTextImage</a>
@@ -1371,6 +1468,11 @@ Output:
 * height: The height of image.
 * original_size: The original size data of the image is used for subsequent node recovery.
 
+### <a id="table1">AnyRerouter</a>
+![image](image/any_rerouter_node.jpg)    
+Used for rerouter any type of data, this node allows for any type of input.
+
+
 ### <a id="table1">ImageHub</a>
 
 Switch output from multiple input images and masks, supporting 9 sets of inputs. All input items are optional. if there is only image or mask in a set of input, the missing item will be output as None.
@@ -1395,6 +1497,32 @@ Node Options:
 * select: Select the output image or mask at the batch index value, where 0 is the first image. Multiple values can be entered, separated by any non numeric character, including but not limited to commas, periods, semicolons, spaces or letters, and even Chinese characters.
   Note: If the value exceeds the batch size, the last image will be output. If there is no corresponding input, an empty 64x64 image or a 64x64 black mask will be output.
 
+### <a id="table1">ChoiceTextPreset</a>
+Select output from the preset text dictionary.
+![image](image/choice_text_preset_example.jpg)    
+
+Node Options:  
+![image](image/chioce_text_preset_node.jpg)    
+* text_preset: Preset text. Set the output by the [TextPreseter](#TextPreseter) node.
+* choice_title: Select a preset title to output the corresponding text content.
+* random_choice: Whether to randomly select a preset.
+* default: Default output text, 0 corresponds to the first paragraph, and so on. Note that exceeding the preset text paragraph length will result in errors.
+* seed: The random seed used for random selection.
+* control_after_generate: Whether to change the seed every time it runs.
+
+Outputs:
+* title: Text paragraph title.
+* content: Text paragraph content.
+
+### <a id="table1">TextPreseter</a>
+Preset text dictionary, set a section of text for each node, supporting multiple nodes to be concatenated.
+
+Node Options:  
+![image](image/text_preseter_node.jpg)    
+* text_preset: Preset text input, optional input. Multiple preset text nodes can be concatenated.
+* title: Text paragraph title.
+* content: Text paragraph content.
+
 ### <a id="table1">TextJoin</a>
 
 ![image](image/text_join_example.jpg)    
@@ -1411,6 +1539,7 @@ Added delimiter options on the basis of [TextJoin](#TextJoin).
 Used to provide assistance for workflow debugging. When running, the properties of any object connected to this node will be printed to the console.
 
 This node allows any type of input.
+
 
 ### <a id="table1">TextBox</a>
 
@@ -1510,7 +1639,7 @@ Node Options:
 ![image](image/string_condition_node.jpg)  
 
 * text: Input text.
-* condition: Judgment conditions. ```include``` determines whether it contains a substring, and ```exclude``` determines whether it does not.
+* condition: Judgment conditions. ```include``` determines whether it contains a substring, ```exclude``` determines whether it does not, and  ```equal``` determine whether it is equal to the substring.
 * sub_string: Substring.
 
 ### <a id="table1">CheckMask</a>
