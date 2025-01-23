@@ -1,6 +1,7 @@
 import torch
 from PIL import Image, ImageFont, ImageDraw
 from .imagefunc import log, tensor2pil, pil2tensor, gaussian_blur, adjust_levels, get_resource_dir
+import folder_paths
 
 class ImageReelPipeline:
     def __init__(self):

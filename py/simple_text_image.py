@@ -4,6 +4,7 @@ import copy
 from PIL import Image, ImageFont, ImageDraw
 from typing import cast
 from .imagefunc import AnyType, log, get_resource_dir, tensor2pil, pil2tensor, image2mask
+import folder_paths
 
 
 any = AnyType("*")

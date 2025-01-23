@@ -3,6 +3,7 @@ import time
 import random
 from PIL import Image, ImageFont, ImageDraw
 from .imagefunc import AnyType, log, tensor2pil, pil2tensor, image2mask, get_resource_dir, RGB2RGBA, random_numbers
+import folder_paths
 
 
 any = AnyType("*")
