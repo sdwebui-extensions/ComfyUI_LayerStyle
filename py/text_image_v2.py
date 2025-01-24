@@ -127,7 +127,7 @@ class TextImage_v2:
         draw = ImageDraw.Draw(_mask)
         for l in range(len(lines)):
             for c in range(len(lines[l])):
-                font_path = font_file = folder_paths.get_full_path("fonts", font_file)
+                font_path = folder_paths.get_full_path("fonts", font_file)
                 font_size = text_table[l][c].get('size')
                 font = ImageFont.truetype(font_path, font_size)
                 draw.text(text_table[l][c].get('axis'), text_table[l][c].get('char'), font=font, fill='white')
