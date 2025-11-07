@@ -34,6 +34,7 @@ class ColorCorrectLUTapply:
 
     def color_correct_LUTapply(self, image, LUT, color_space, strength):
 
+        (LUT_DICT, _) = get_resource_dir()        
         ret_images = []
         for i in image:
             i = torch.unsqueeze(i, 0)

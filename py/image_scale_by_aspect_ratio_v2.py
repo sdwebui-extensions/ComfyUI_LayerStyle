@@ -2,6 +2,9 @@ import torch
 from PIL import Image
 import math
 from .imagefunc import log, tensor2pil, pil2tensor, image2mask, num_round_up_to_multiple, fit_resize_image, is_valid_mask
+from dist_utils import args, tensor_chunk, all_gather, all_all, all_all_async, conv3d_p2pop, conv2d_p2pop, tensor_boradcast, tensor_chunk_send, run_node_dist
+import json
+import os
 
 
 
@@ -45,7 +48,6 @@ class ImageScaleByAspectRatioV2:
                                     background_color,
                                     image=None, mask = None,
                                     ):
-        orig_images = []
         orig_masks = []
         orig_width = 0
         orig_height = 0
@@ -55,10 +57,7 @@ class ImageScaleByAspectRatioV2:
         ret_images = []
         ret_masks = []
         if image is not None:
-            for i in image:
-                i = torch.unsqueeze(i, 0)
-                orig_images.append(i)
-            orig_width, orig_height = tensor2pil(orig_images[0]).size
+            orig_width, orig_height = tensor2pil(image[0]).size
         if mask is not None:
             if mask.dim() == 2:
                 mask = torch.unsqueeze(mask, 0)
@@ -154,16 +153,20 @@ class ImageScaleByAspectRatioV2:
         elif method == "nearest":
             resize_sampler = Image.NEAREST
 
-        if len(orig_images) > 0:
-            for i in orig_images:
+        if len(image) > 0:
+            for i in image:
                 _image = tensor2pil(i).convert('RGB')
                 _image = fit_resize_image(_image, target_width, target_height, fit, resize_sampler, background_color)
                 ret_images.append(pil2tensor(_image))
+                del _image
+        del image
         if len(orig_masks) > 0:
             for m in orig_masks:
                 _mask = tensor2pil(m).convert('L')
                 _mask = fit_resize_image(_mask, target_width, target_height, fit, resize_sampler).convert('L')
                 ret_masks.append(image2mask(_mask))
+        if args.world_size > 1:
+            torch.distributed.barrier()
         if len(ret_images) > 0 and len(ret_masks) >0:
             log(f"{self.NODE_NAME} Processed {len(ret_images)} image(s).", message_type='finish')
             return (torch.cat(ret_images, dim=0), torch.cat(ret_masks, dim=0),[orig_width, orig_height], target_width, target_height,)

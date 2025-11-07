@@ -71,7 +71,7 @@ git clone https://github.com/chflame163/ComfyUI_LayerStyle.git
 * 重新打开ComfyUI。
 
 ### 下载模型
-国内用户请从[百度网盘](https://pan.baidu.com/s/1T_uXMX3OKIWOJLPuLijrgA?pwd=1yye), 海外用户请从[huggingface](https://huggingface.co/chflame163/ComfyUI_LayerStyle/tree/main), 
+国内用户请从[百度网盘](https://pan.baidu.com/s/1T_uXMX3OKIWOJLPuLijrgA?pwd=1yye)或者[夸克网盘](https://pan.quark.cn/s/4802d6bca7cb), 海外用户请从[huggingface](https://huggingface.co/chflame163/ComfyUI_LayerStyle/tree/main), 
 下载全部模型文件并复制到```ComfyUI\models```文件夹。这个链接提供了本插件需要的所有的模型文件。
 或者按各个节点的说明下载模型文件。     
 以Ultra命名的节点使用vitmatte模型，请下载[vitmatte模型](https://huggingface.co/hustvl/vitmatte-small-composition-1k/tree/main)到```ComfyUI/models/vitmatte```文件夹，上面的下载链接也包括了这个模型。
@@ -128,6 +128,16 @@ os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 ## 更新说明
 <font size="4">**如果本插件更新后出现依赖包错误，请双击运行插件目录下的```install_requirements.bat```(官方便携包)，或 ```install_requirements_aki.bat```(秋叶整合包) 重新安装依赖包。
 
+* 添加 [FluxKontextImageScale](#FluxKontextImageScale) 节点，基于官方节点修改，用于将图像大小调整为更适合FluxKontext的大小。对于非标准宽高比的图像，自动调整比例以保持所有画面信息。
+* 添加 [MaskBoxExtend](#MaskBoxExtend) 节点，用于生成遮罩BBOX扩展范围并输出为Mask。
+* 添加 [ColorNegative](#ColorNegative)节点，用于将图片颜色反转。
+* 添加 [LoadImagesFromPath](#LoadImagesFromPath) 和 [ImageTaggerSaveV2](#ImageTaggerSaveV2) 节点，用于从文件夹加载图片列表并保存对应文件名的图片和标签。 
+* 添加 [SegformerUltraV3](SegformerUltraV3), [LoadSegformerModel](LoadSegformerModel), [SegformerClothesSetting](SegformerClothesSetting) 和 [SegformerFashionSetting](SegformerFashionSetting) 节点，将模型与设置分离加载，在使用多个节点时节省资源。
+* 添加多语言，除英语外，增加支持5种语言：中文、法语、日语、韩语和俄语。该功能使用[ComfyUI-Globalization-Node-Translation](https://github.com/yamanacn/ComfyUI-Globalization-Node-Translation)制作，感谢原作者。 
+* 添加 [HalfTone](#HalfTone) 节点，用于对图像进行半色调处理。
+* 增加模型下载夸克网盘链接。
+* 支持numpy 2.x依赖包。
+* 添加 [PurgeVRAM V2](#PurgeVRAMV2) 节点，不强制执行，增加any输出，便于在流程中灵活释放显存。
 * 添加 [ChoiceTextPreset](#ChoiceTextPreset) 和 [TextPreseter](#TextPreseter) 节点，用于预设文本和选择预设文本输出。
 * [StringCondition](#StringCondition) 节点增加比较字符串是否相同功能。
 * 添加 [NameToColor](#NameToColor)节点，根据颜色名称输出颜色。
@@ -153,6 +163,7 @@ LayerMask: SegmentAnythingUltra, LayerMask: SegmentAnythingUltra V2, LayerMask: 
 LayerUtility: UserPromptGeneratorTxt2ImgPrompt, LayerUtility: UserPromptGeneratorTxt2ImgPromptWithReference, LayerUtility: UserPromptGeneratorReplaceWord,    
 LayerUtility: AddBlindWaterMark, LayerUtility: ShowBlindWaterMark, LayerMask: YoloV8Detect
 
+* 添加 [LoadImageFromPath](LoadImageFromPath) 节点，可将一个文件夹中的图片加载为图片列表输出，支持单个文件名对应列表输出。
 * 合并[alexisrolland](https://github.com/alexisrolland) 提交的分支，添加Image Blend Advanced v3 和 Drop Shadow v3 节点，支持透明背景。
 * 添加[BenUltra](#BenUltra) 和 [LoadBenModel](#LoadBenModel)节点。这两个节点是[PramaLLC/BEN](https://huggingface.co/PramaLLC/BEN) 项目在ComfyUI中的实现。    
 从 [huggingface](https://huggingface.co/PramaLLC/BEN/tree/main) 或 [百度网盘](https://pan.baidu.com/s/17mdBxfBl_R97mtNHuiHsxQ?pwd=2jn3)下载```BEN_Base.pth``` 和 ```config.json``` 两个文件并复制到 ```ComfyUI/models/BEN```文件夹。
@@ -662,6 +673,14 @@ Color of Shadow & Highlight 节点的复制品，去掉了节点名称中的"&"�
 * S: 图像的S通道。
 * V: 图像的V通道。
 
+### <a id="table1">ColorNegative</a>
+对图像进行颜色反转，可以选择RGB反转，黑白反转，以及RGB的各通道单独反转。
+![image](image/color_negative_example.jpg)    
+
+节点选项说明:  
+![image](image/color_negative_node.jpg)    
+* negative_channel: 选择进行反转的通道。
+
 # <a id="table1">LayerUtility</a>
 ![image](image/layerutility_nodes.jpg)    
 
@@ -862,6 +881,20 @@ ImageScaleByAspectRatio的V2升级版
 * image: 图像输入。
 * icmask_data: 从ICMask输出的拼接信息。
 
+### <a id="table1">FluxKontextImageScale</a>
+基于官方节点修改，用于将图像大小调整为更适合FluxKontext的大小。对于非标准宽高比的图像，自动调整比例以保持所有画面信息。    
+下图示例对一张4K分辨率的图片使用该节点保持画面的完整信息，通过FluxKontext模型推理改变了图片背景，然后通过 [HLFrequencyDetailRestore](#HLFrequencyDetailRestore) 节点实现了4K画质的细节恢复。    
+<font size="1">*此图工作流(flux_kontext_image_scale_example.json) 在 workflow 目录中.   </font><br />
+![image](image/flux_kontext_image_scale_node_example.jpg)
+
+节点选项说明:   
+![image](image/flux_kontext_image_scale_node.jpg)    
+
+* image: 输入的图片。
+* method: 缩放的采样方法，包括lanczos、bicubic、hamming、bilinear、box和nearest。
+
+输出:
+* image: 输出图像。
 
 ### <a id="table1">VQAPrompt</a>
 使用blip-vqa模型进行视觉问答。本节点的部分代码参考自[celoron/ComfyUI-VisualQueryTemplate](https://github.com/celoron/ComfyUI-VisualQueryTemplate)，感谢原作者。    
@@ -1521,12 +1554,15 @@ BooleanOperator的升级版，增加了节点内数值输入，增加了大于�
 ### <a id="table1">PurgeVRAM</a>
 ![image](image/purge_vram_example.jpg)    
 清理GPU显存。可以接入任意类型的输入，当执行到这个节点时将清理VRAM以及RAM中的垃圾对象。通常放置在推理任务完成的节点之后，例如VAE Decode节点。
+此节点为强制执行，即接在此节点之前的所有节点都将被执行。
 
 节点选项说明:  
 * purge_cache: 清理缓存。
 * purge_models: 清理已加载的模型。
 
-
+### <a id="table1">PurgeVRAMV2</a>
+![image](image/purge_vram_v2_example.jpg)    
+与PurgeVRAM不同，此节点不是强制执行，可在流程中接入任意输入，并保持原输出，灵活清理。
 
 ### <a id="table1">ImageTaggerSave</a>  
 ![image](image/image_tagger_save_example.jpg)  
@@ -1546,6 +1582,28 @@ BooleanOperator的升级版，增加了节点内数值输入，增加了大于�
 
 <sup>*</sup>输入```%date```表示当前日期(YY-mm-dd)，```%time```表示当前时间(HH-MM-SS)。可以输入```/```表示子目录。例如```%date/name_%time``` 将输出图片到```YY-mm-dd```文件夹下，以```name_HH-MM-SS```为文件名前缀。
 
+### <a id="table1">ImageTaggerSaveV2</a>  
+[ImageTaggerSave](#ImageTaggerSave) 节点的升级版，可配合[LoadImagesFromPath](#LoadImagesFromPath) 节点保存文件夹中对应图片的文本标签文件，并保持原文件名。
+
+在原节点上增加了以下选项:
+![image](image/image_tagger_save_v2_node.jpg)      
+* custom_filename: 用户自定义文件名。如果此处有输入则作为保存文件名，否则使用filename_prefix作为文件名前缀。
+* remove_custom_filename_ext: 是否移除原文件名中的扩展名。
+
+### <a id="table1">LoadImagesFromPath</a>  
+从指定的文件夹中加载图片。
+
+节点选项说明:
+![image](image/load_images_from_path_node.jpg)      
+* path: 文件夹路径。
+* image_load_cap: 输出的文件数量。默认值0表示读取文件夹中的所有图片文件。
+* select_every_nth: 每隔多少张图片加载一张图片。
+
+输出：
+* images: 输出的图片列表。
+* masks: 输出图片对应的遮罩列表。
+* file_name: 输出图片对应的文件名列表。
+* frame_count: 输出图片总数。
 
 
 # <a id="table1">LayerMask</a>
@@ -1586,6 +1644,29 @@ mask为可选输入项，如果这里输入遮罩，将作用于输出结果。
 * height: 高度输出。
 * x: 左上角位置x坐标输出。
 * y: 左上角位置y坐标输出。
+
+### <a id="table1">MaskBoxExtend</a>
+生成遮罩BBOX扩展范围并输出为Mask，扩展范围可设置为正值或负值，正值是扩展，负值是收缩。
+![image](image/mask_box_extend_example.jpg)    
+
+节点选项说明:  
+![image](image/mask_box_extend_node.jpg)    
+* mask: 遮罩输入。
+* crop_box: MaskBoxDetect 节点输出的遮罩BBOX数据。
+* top_extend: 顶部扩展范围。100表示扩展100%的BBOX高度。
+* bottom_extend: 底部扩展范围。100表示扩展100%的BBOX高度。
+* left_extend: 左边扩展范围。100表示扩展100%的BBOX宽度。
+* right_extend: 右边扩展范围。100表示扩展100%的BBOX宽度。
+
+输出：
+* mask: BBOX扩展后的Mask。
+* x_percent: 水平位置以百分比输出。
+* y_percent: 垂直位置以百分比输出。
+* width: 宽度输出。
+* height: 高度输出。
+* x: 左上角位置x坐标输出。
+* y: 左上角位置y坐标输出。
+
 
 ## <a id="table1">Ultra</a>节点组
 ![image](image/ultra_nodes.jpg)   
@@ -1761,6 +1842,32 @@ RemBgUltra的V2升级版，增加了VITMatte边缘处理方法。
 * ruffle: 褶饰识别。
 * sequin: 亮片识别。
 * tassel: 流苏识别。
+
+
+### <a id="table1">SegformerUltraV3</a>   
+在SegformerUltraV2基础上，修改为模型与设置分离加载，在使用多个节点时节省资源。请注意设置的类型必须与模型匹配。
+
+修改的节点选项:  
+![image](image/segfromer_ultra_v3_node.jpg)
+* segformer_model: Segformer模型输入，模型由LoadSegformerModel节点加载。
+* segformer_setting: Segformer Label设置输入。
+
+### <a id="table1">SegformerClothesSetting</a>
+![image](image/segformer_clothes_setting_node.jpg)
+与 SegformerUltraV3 配套的SegformerClothes设置节点。在SegformerClothesPipiline节点基础上删除了model 选项。 
+
+
+### <a id="table1">SegformerFashionSetting</a>
+![image](image/segformer_fashion_pipeline_node.jpg)    
+与 SegformerUltraV3 配套的SegformerFashion设置节点。在SegformerFashionPipiline节点基础上删除了model 选项。
+
+### <a id="table1">LoadSegformerModel</a>
+与 SegformerUltraV3 配套的模型加载节点。    
+
+节点选项说明:  
+![image](image/load_segfromer_model_node.jpg)    
+* model_name: 模型选择。目前有三种模型可供选择segformer b2 clothes, segformer b3 clothes 和 segformer b3 fashion。
+* devicee: 加载设备选择。
 
 
 ### <a id="table1">MaskEdgeUltraDetail</a>
@@ -1968,6 +2075,21 @@ mask反转
 ![image](image/water_color_node.jpg)    
 * line_density: 线条密度。
 * opacity: 水彩效果的不透明度。
+
+### <a id="table1">HalfTone</a>
+将图片转为半色调效果。
+![image](image/halftone_example.jpg)    
+
+节点选项说明:
+![image](image/halftone_node.jpg)    
+* image: 图片输入。
+* mask: 可选遮罩输入。
+* dot_size: 点的大小。
+* angle: 点的排列角度。
+* shape: 点的形状。有3个选项：circle、diamond、square。
+* dot_color: 点的颜色。
+* background_color: 背景颜色。
+* anti_alias: 反锯齿强度。更高的值将使点的边缘更平滑，同时增加处理时间。
 
 
 ### <a id="table1">SoftLight</a>
