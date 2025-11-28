@@ -128,6 +128,8 @@ os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 ## 更新说明
 <font size="4">**如果本插件更新后出现依赖包错误，请双击运行插件目录下的```install_requirements.bat```(官方便携包)，或 ```install_requirements_aki.bat```(秋叶整合包) 重新安装依赖包。
 
+* 添加 [ImageCompositeHandleMask](#ImageCompositeHandleMask) 节点， 用于生成局部羽化遮罩以及对应的裁切数据。
+* 添加 [DrawRoundedRectangle](#DrawRoundedRectangle) 节点， 用于生成圆角矩形遮罩。
 * 添加 [FluxKontextImageScale](#FluxKontextImageScale) 节点，基于官方节点修改，用于将图像大小调整为更适合FluxKontext的大小。对于非标准宽高比的图像，自动调整比例以保持所有画面信息。
 * 添加 [MaskBoxExtend](#MaskBoxExtend) 节点，用于生成遮罩BBOX扩展范围并输出为Mask。
 * 添加 [ColorNegative](#ColorNegative)节点，用于将图片颜色反转。
@@ -710,6 +712,43 @@ Color of Shadow & Highlight 节点的复制品，去掉了节点名称中的"&"�
 * transform_method: 用于图层放大和旋转的采样方法，包括lanczos、bicubic、hamming、bilinear、box和nearest。不同的采样方法会影响合成的画质和画面处理时间。
 * anti_aliasing: 抗锯齿，范围从0-16，数值越大，锯齿越不明显。过高的数值将显著降低节点的处理速度。
 * [节点注解](#节点注解)
+
+### <a id="table1">ImageCompositeHandleMask</a>
+用于生成局部羽化遮罩以及对应的裁切数据。节点提供了mask输出可用于后续工作流。
+![image](image/image_composite_handle_mask_example.jpg)    
+
+节点选项说明:   
+![image](image/image_composite_handle_mask_node.jpg)    
+* background_image: 背景图像。
+* layer_image: 用于合成的层图像。
+* layer_mask: 层图像的遮罩。
+* invert_mask: 是否反转遮罩。
+* opacity: 不透明度。
+* x_percent: 图层在背景图上的水平位置，用百分比表示，最左侧是0，最右侧是100，可以是小于0或者超过100，那表示图层有部分内容在画面之外。
+* y_percent: 图层在背景图上的垂直位置，用百分比表示，最上侧是0，最下侧是100。例如设置为50表示垂直居中，20是偏上，80则是偏下。
+* scale: 图层放大倍数，1.0 表示原大。
+* mirror: 镜像翻转。提供2种翻转模式, 水平翻转和垂直翻转。
+* rotate: 图层旋转度数。
+* anti_aliasing: 抗锯齿，范围从0-16，数值越大，锯齿越不明显。过高的数值将显著降低节点的处理速度。
+* handle_detect: 羽化遮罩位置检测方法，有mask_area和layer_bbox两种。mask_area检测合成对象的遮罩有效区域，layer_bbox检测合成对象外框。
+* top_handle: 遮罩顶部羽化幅度。数值为遮罩平均边长的百分比。
+* bottom_handle: 遮罩底部羽化幅度。数值为遮罩平均边长的百分比。
+* left_handle: 遮罩左侧羽化幅度。数值为遮罩平均边长的百分比。
+* right_handle: 遮罩右侧羽化幅度。数值为遮罩平均边长的百分比。
+* handle_mask_outradius: 羽化遮罩圆角半径。
+* top_reserve: 裁切顶端保留大小。
+* bottom_reserve: 裁切底部保留大小。
+* left_reserve: 裁切左侧保留大小。
+* right_reserve: 裁切右侧保留大小。
+* round_to_multiple: 使裁切边长倍数取整。例如设置为8，宽和高将强制设置为8的倍数。
+
+输出:
+* image: 合成后的图片。
+* mask: 合成后的遮罩。
+* layer_bbox_mask: 合成对象外框遮罩。
+* handle_mask: 羽化遮罩。
+* handle_crop_bbox: 羽化遮罩裁切数据。
+* handle_overrange: 羽化遮罩是否超出背景图范围。输出格式为包括"top","bottom","left","right"的字符串。
 
 ### <a id="table1">CropByMask</a>
 将图片按照mask范围裁切，可设置四周边框保留大小。这个节点与[RestoreCropBox](#RestoreCropBox)和[ImageScaleRestore](#ImageScaleRestore)配合使用，可以对图片的局部进行裁切，放大修改后贴回原处。
@@ -2036,6 +2075,20 @@ MaskGrow与MaskEdgeShrink效果对比
 * grain: 噪声强度。
 * invert_mask: 是否反转遮罩。
 
+### <a id="table1">DrawRoundedRectangle</a>
+为遮罩生成圆角矩形边框。
+
+节点选项说明:  
+![image](image/draw_rounded_rectangle_node.jpg)     
+
+* size_as<sup>*</sup>: 参考大小。可以是图像image，也可以是遮罩mask。
+* rounded_rect_radius: 圆角矩形半径。
+* anti_aliasing: 抗锯齿采样倍数。
+* width: 遮罩宽度。如果size_as输入，此设置将被忽略。
+* height: 遮罩高度。如果size_as输入，此设置将被忽略。
+
+<sup>*</sup>仅限输入image和mask, 如果强制接入其他类型输入，将导致节点错误。
+
 ### <a id="table1">MaskPreview</a>
 预览mask
 ![image](image/mask_invert.jpg)    
@@ -2043,6 +2096,7 @@ MaskGrow与MaskEdgeShrink效果对比
 ### <a id="table1">MaskInvert</a>
 mask反转
 ![image](image/mask_invert_node.jpg)    
+
 
 
 # <a id="table1">LayerFilter</a>
