@@ -147,6 +147,9 @@ When this error has occurred, please check the network environment.
 
 <font size="4">**If the dependency package error after updating,  please double clicking ```repair_dependency.bat``` (for Official ComfyUI Protable) or  ```repair_dependency_aki.bat``` (for ComfyUI-aki-v1.x) in the plugin folder to reinstall the dependency packages. </font><br />    
 
+* Commit [ImageBatchToList](#ImageBatchToList) and [ImageListToBatch](#ImageListToBatch) nodes, Used for converting single batches of images into multiple small batches and vice versa, with option to define the maximum number of images in each small batch. 
+* Commit [DistortDisplace](#DistortDisplace) node,  Generate displacement deformation effects for material images.
+* Commit [MaskEdgeUltraDetailV3](#MaskEdgeUltraDetailV3)  node, By processing different partitions through inputting a trimap mask, a more refined overall mask including translucent parts is generated. 
 * Commit [ImageCompositeHandleMask](#ImageCompositeHandleMask) node, used to generate local feathering masks and cropping data.
 * Commit [DrawRoundedRectangle](#DrawRoundedRectangle) node, used to generate rounded rectangle masks.
 * Commit [FluxKontextImageScale](#FluxKontextImageScale) node, based on official node modifications, used to resizes the image to one that is more optimal for flux kontext. For images with different aspect ratio, the scale will be adjusted appropriately to maintain all information.
@@ -1833,6 +1836,21 @@ Outputs:
 * file_name: Output a list of file names corresponding to the images.
 * frame_count: Output the total number of images.
 
+
+### <a id="table1">ImageBatchToList</a>  
+Convert a batch of images into multiple smaller batches, with option to define the maximum number of images in each small batch.
+
+Node Options:
+![image](image/image_batch_to_list(multi)_node.jpg)      
+* batch_size:  The maximum number of images in each small batch.
+
+
+### <a id="table1">ImageListToBatch</a>  
+Merge multiple small batches of images into one large batch.
+![image](image/image_batch_to_list(multi)_node.jpg)      
+
+
+
 # <a id="table1">LayerMask</a>
 
 ![image](image/layermask_nodes.jpg)    
@@ -2148,6 +2166,19 @@ On the basis of MaskEdgeUltraDetail, the following changes have been made:
 * device: Set whether the VitMatte to use cuda.
 * max_megapixels: Set the maximum size for VitMate operations.
 
+
+### <a id="table1">MaskEdgeUltraDetailV3</a>
+The upgraded version of MaskEdgeUltraDetailV2 to processes different partitions through inputting trimap masks, generating an overall mask that includes more refined and translucent parts.
+![image](image/mask_edge_ultra_detail_v3_example.jpg)  
+
+On the basis of MaskEdgeUltraDetailV2, the following changes have been made: 
+![image](image/mask_edge_ultra_detail_v3_node.jpg)    
+* transparent_trimap: Using different vitmatte parameters within this area can generate more refined matte mask. It is typically used to handle areas such as translucent objects or hair strands. 
+* mask_edge_erode: The edge of the mask part erodes inwardly. The larger the value, the greater the range of inward repair.
+* mask_edge_dilate: The edge of the mask expands outward. The larger the value, the greater the outward repair range.
+* transparent_trimap_edge_erode: The edge of the transparent_trimap mask erodes inwardly. The larger the value, the greater the range of inward correction.
+* transparent_trimap_edge_dilate: The edge of the transparent_trimap mask expands outward. The larger the value, the greater the outward repair range.
+* trimap_blur: The degree of blur at the edge where the trimap mask and the mask are fused.
 
 ### <a id="table1">MaskByColor</a>
 
@@ -2521,6 +2552,27 @@ Node Options:
 * grain_power: Noise intensity.
 * grain_scale: Noise size.
 * grain_sat: Color saturation of noise.
+
+### <a id="table1">DistortDisplace</a>
+Generate displacement deformation effects for material images.
+![image](image/distort_displace_example.jpg)    
+
+Node Options:
+![image](image/distort_displace_node.jpg)    
+* image: The original image, with material distortion based on the grayscale information of this image.
+* material_image: Material image. The size of this image should be consistent with that of the image, otherwise it will be resized forcibly.
+* mask: Optional mask input. The output will only include the deformed result of the map in the masked part.
+* distort_strength: The strength of distortion.
+* smoothness: The smoothness of distortion.
+* anit_aliasing: The value of anti-aliasing. Higher values will result in a significant decrease in generation speed.
+* shadow_blend_mode: The shadow part blending mode.
+* shadow_strength: The shadow part blending opacity.
+* highlight_blend_mode: The highlight part blending mode.
+* highlight_strength: The highlight part blending opacity.
+
+Outputs:
+* image: The output image.
+* displaced_material: The deformation result of the material image.
 
 ## Annotation for <a id="table1">notes</a>
 
